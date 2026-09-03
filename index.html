@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DataPrev Flash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --green:#58CC02;
+    --green-dark:#46A302;
+    --green-soft:#D7FFB8;
+    --blue:#1CB0F6;
+    --blue-dark:#1899D6;
+    --blue-soft:#E1F3FE;
+    --yellow:#FFC800;
+    --yellow-dark:#E6B400;
+    --yellow-soft:#FFF7DE;
+    --red:#FF4B4B;
+    --red-dark:#E43F3F;
+    --red-soft:#FFEBEB;
+    --gray-line:#E5E5E5;
+    --gray-bg:#F7F7F5;
+    --ink:#3C3C3C;
+    --ink-soft:#777770;
+    --white:#FFFFFF;
+    --radius:16px;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:'Nunito', sans-serif;
+    background:var(--gray-bg);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  h1,h2,h3,.heading{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    margin:0;
+  }
+
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    background:var(--white);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    box-shadow:0 0 40px rgba(0,0,0,0.06);
+  }
+
+  /* ---------- HEADER ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 20px 14px;
+    border-bottom:2px solid var(--gray-line);
+    position:sticky;
+    top:0;
+    background:var(--white);
+    z-index:10;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand-badge{
+    width:36px;height:36px;
+    background:var(--green);
+    border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    color:white;
+    font-family:'Baloo 2';
+    font-weight:800;
+    font-size:18px;
+    flex-shrink:0;
+    box-shadow:0 3px 0 var(--green-dark);
+  }
+  .brand-title{
+    font-size:18px;
+    color:var(--ink);
+  }
+  .streak{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:var(--yellow-soft);
+    border:2px solid var(--yellow);
+    padding:6px 12px;
+    border-radius:999px;
+    font-family:'Baloo 2';
+    font-weight:700;
+    font-size:15px;
+    color:#8A6D00;
+    transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+  }
+  .streak.pulse{ animation:streakPulse .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes streakPulse{
+    0%{transform:scale(1);}
+    40%{transform:scale(1.25);}
+    100%{transform:scale(1);}
+  }
+  .streak svg{width:18px;height:18px;flex-shrink:0;}
+
+  .lock-screen{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:32px 28px;
+    text-align:center;
+  }
+  .lock-badge{
+    width:64px;height:64px;
+    background:var(--green);
+    border-radius:18px;
+    display:flex;align-items:center;justify-content:center;
+    color:white;
+    box-shadow:0 4px 0 var(--green-dark);
+    margin-bottom:20px;
+  }
+  .lock-badge svg{ width:30px;height:30px; }
+  .lock-title{
+    font-size:20px;
+    margin-bottom:6px;
+  }
+  .lock-sub{
+    color:var(--ink-soft);
+    font-size:14px;
+    margin-bottom:26px;
+  }
+  .lock-screen input{
+    width:100%;
+    max-width:280px;
+    font-family:'Nunito';
+    font-size:17px;
+    text-align:center;
+    letter-spacing:2px;
+    border:2px solid var(--gray-line);
+    border-radius:14px;
+    padding:14px;
+    outline:none;
+    margin-bottom:14px;
+    transition:border-color .15s ease;
+  }
+  .lock-screen input:focus{ border-color:var(--blue); }
+  .lock-screen .btn{ max-width:280px; }
+  .lock-error{
+    color:var(--red);
+    font-size:13px;
+    font-weight:700;
+    margin:-4px 0 14px;
+    display:none;
+  }
+  .lock-error.show{ display:block; }
+
+  .config-warning{
+    background:var(--red-soft);
+    color:var(--red-dark);
+    font-size:13px;
+    font-weight:700;
+    line-height:1.5;
+    padding:12px 20px;
+    text-align:center;
+    border-bottom:2px solid #FFD2D2;
+  }
+
+  /* ---------- VIEWS ---------- */
+  .view{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    padding:24px 20px 32px;
+    animation:viewIn .28s ease;
+  }
+  @keyframes viewIn{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .hidden{display:none !important;}
+
+  /* ---------- HOME ---------- */
+  .hero-card{
+    background:var(--green);
+    border-radius:20px;
+    padding:22px 20px;
+    color:white;
+    margin-bottom:22px;
+    box-shadow:0 4px 0 var(--green-dark);
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-card::after{
+    content:"";
+    position:absolute;
+    right:-30px; top:-30px;
+    width:120px; height:120px;
+    background:rgba(255,255,255,0.12);
+    border-radius:50%;
+  }
+  .hero-num{
+    font-family:'Baloo 2';
+    font-size:40px;
+    font-weight:800;
+    line-height:1;
+  }
+  .hero-label{
+    font-size:14px;
+    font-weight:700;
+    opacity:0.92;
+    margin-top:4px;
+  }
+
+  .btn{
+    font-family:'Baloo 2';
+    font-weight:700;
+    font-size:16px;
+    letter-spacing:0.3px;
+    border:none;
+    border-radius:14px;
+    padding:16px 20px;
+    width:100%;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    color:white;
+    transition:transform .08s ease, box-shadow .08s ease;
+    user-select:none;
+  }
+  .btn svg{width:20px;height:20px;flex-shrink:0;}
+  .btn:active{ transform:translateY(4px); }
+
+  .btn-green{ background:var(--green); box-shadow:0 4px 0 var(--green-dark); }
+  .btn-green:active{ box-shadow:0 0 0 var(--green-dark); }
+
+  .btn-blue{ background:var(--blue); box-shadow:0 4px 0 var(--blue-dark); }
+  .btn-blue:active{ box-shadow:0 0 0 var(--blue-dark); }
+
+  .btn-outline{
+    background:white;
+    color:var(--ink-soft);
+    border:2px solid var(--gray-line);
+    box-shadow:0 4px 0 var(--gray-line);
+  }
+  .btn-outline:active{ box-shadow:0 0 0 var(--gray-line); transform:translateY(4px); }
+
+  .btn-red{ background:var(--red); box-shadow:0 4px 0 var(--red-dark); }
+  .btn-red:active{ box-shadow:0 0 0 var(--red-dark); }
+
+  .btn-disabled{
+    background:#E5E5E5 !important;
+    color:#AFAFAA !important;
+    box-shadow:0 4px 0 #D0D0CB !important;
+    cursor:not-allowed;
+    pointer-events:none;
+  }
+
+  .btn-row{ display:flex; gap:12px; }
+  .btn-row .btn{ flex:1; }
+
+  .btn-sm{
+    width:auto;
+    padding:10px 18px;
+    font-size:14px;
+    border-radius:999px;
+  }
+
+  .stack{ display:flex; flex-direction:column; gap:12px; margin-bottom:8px; }
+
+  .review-mistakes{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    background:var(--red-soft);
+    color:var(--red-dark);
+    border:2px solid #FFD2D2;
+    font-family:'Baloo 2';
+    font-weight:700;
+    font-size:14px;
+    padding:11px 16px;
+    border-radius:14px;
+    margin-bottom:22px;
+    cursor:pointer;
+    transition:transform .08s ease;
+  }
+  .review-mistakes:active{ transform:scale(0.97); }
+  .review-mistakes svg{ width:17px;height:17px; flex-shrink:0; }
+  .review-mistakes .count-badge{
+    background:var(--red);
+    color:white;
+    font-size:12px;
+    min-width:20px;
+    height:20px;
+    padding:0 6px;
+    border-radius:999px;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  .section-title{
+    font-size:14px;
+    color:var(--ink-soft);
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    margin:26px 0 12px;
+  }
+
+  .card-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 14px;
+    border:2px solid var(--gray-line);
+    border-radius:14px;
+    margin-bottom:10px;
+  }
+  .card-row-text{
+    flex:1;
+    min-width:0;
+  }
+  .card-row-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:3px;
+  }
+  .topic-badge{
+    font-family:'Baloo 2';
+    font-size:11px;
+    font-weight:700;
+    color:var(--blue-dark);
+    background:var(--blue-soft);
+    padding:2px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .mistake-dot{
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--red);
+    flex-shrink:0;
+  }
+  .card-row-front{
+    font-weight:700;
+    font-size:15px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .card-row-back{
+    font-size:13px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    margin-top:2px;
+  }
+  .icon-btn{
+    background:none;
+    border:none;
+    color:#C6C6C0;
+    cursor:pointer;
+    padding:6px;
+    display:flex;
+    border-radius:8px;
+    transition:background .15s ease, color .15s ease;
+    flex-shrink:0;
+  }
+  .icon-btn:hover{ background:#FBECEC; color:var(--red); }
+  .icon-btn svg{ width:20px; height:20px; }
+
+  .empty-state{
+    text-align:center;
+    padding:36px 10px 10px;
+    color:var(--ink-soft);
+  }
+  .empty-illustration{
+    width:88px; height:88px;
+    margin:0 auto 16px;
+    border-radius:24px;
+    background:var(--green-soft);
+    display:flex;align-items:center;justify-content:center;
+    transform:rotate(-6deg);
+  }
+  .empty-illustration svg{ width:44px; height:44px; color:var(--green-dark); }
+  .empty-title{
+    font-family:'Baloo 2';
+    font-weight:700;
+    font-size:17px;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .empty-sub{ font-size:14px; line-height:1.5; }
+
+  /* ---------- FORM (add card) ---------- */
+  .field-label{
+    font-family:'Baloo 2';
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:0 0 8px;
+  }
+  textarea{
+    width:100%;
+    font-family:'Nunito', sans-serif;
+    font-size:16px;
+    color:var(--ink);
+    border:2px solid var(--gray-line);
+    border-radius:14px;
+    padding:14px;
+    resize:none;
+    min-height:76px;
+    outline:none;
+    transition:border-color .15s ease;
+    margin-bottom:18px;
+  }
+  textarea:focus{ border-color:var(--blue); }
+  .error-msg{
+    color:var(--red);
+    font-size:13px;
+    font-weight:700;
+    margin:-12px 0 16px;
+    display:none;
+  }
+  .error-msg.show{ display:block; }
+
+  .chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:20px;
+  }
+  .chip{
+    font-family:'Baloo 2';
+    font-weight:700;
+    font-size:14px;
+    padding:9px 15px;
+    border-radius:999px;
+    border:2px solid var(--gray-line);
+    background:white;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all .12s ease;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .chip svg{ width:15px;height:15px; }
+  .chip.selected{
+    border-color:var(--blue);
+    background:var(--blue-soft);
+    color:var(--blue-dark);
+  }
+  .chip.add-chip{
+    border-style:dashed;
+    color:var(--ink-soft);
+  }
+  .new-topic-row{
+    display:none;
+    gap:8px;
+    margin:-8px 0 20px;
+  }
+  .new-topic-row.show{ display:flex; }
+  .new-topic-row input{
+    flex:1;
+    font-family:'Nunito';
+    font-size:15px;
+    border:2px solid var(--blue);
+    border-radius:12px;
+    padding:10px 14px;
+    outline:none;
+  }
+  .new-topic-row button{
+    flex-shrink:0;
+    width:44px;
+    border:none;
+    border-radius:12px;
+    background:var(--blue);
+    color:white;
+    box-shadow:0 3px 0 var(--blue-dark);
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .new-topic-row button svg{ width:20px;height:20px; }
+
+  /* ---------- TOPIC SELECT (before study) ---------- */
+  .topic-select-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:24px;
+  }
+  .topic-select-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 16px;
+    border:2px solid var(--gray-line);
+    border-radius:14px;
+    cursor:pointer;
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .topic-select-row.selected{
+    border-color:var(--green);
+    background:var(--green-soft);
+  }
+  .topic-select-check{
+    width:24px;height:24px;
+    border-radius:8px;
+    border:2px solid var(--gray-line);
+    background:white;
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    transition:all .12s ease;
+  }
+  .topic-select-row.selected .topic-select-check{
+    background:var(--green);
+    border-color:var(--green);
+  }
+  .topic-select-check svg{ width:15px;height:15px; color:white; opacity:0; transition:opacity .1s ease; }
+  .topic-select-row.selected .topic-select-check svg{ opacity:1; }
+  .topic-select-name{
+    flex:1;
+    font-family:'Baloo 2';
+    font-weight:700;
+    font-size:15px;
+  }
+  .topic-select-count{
+    font-size:13px;
+    color:var(--ink-soft);
+    font-weight:700;
+  }
+
+  /* ---------- STUDY ---------- */
+  .progress-track{
+    height:16px;
+    background:var(--gray-line);
+    border-radius:999px;
+    overflow:hidden;
+    margin-bottom:10px;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--green);
+    border-radius:999px;
+    transition:width .35s ease;
+    width:0%;
+  }
+  .progress-meta{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin-bottom:26px;
+  }
+  .study-close{
+    background:none;border:none;color:var(--ink-soft);cursor:pointer;
+    padding:4px; margin-bottom:4px; align-self:flex-start;
+  }
+  .study-close svg{ width:24px;height:24px; }
+
+  .card-stage{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    perspective:1400px;
+    margin:8px 0 26px;
+    min-height:280px;
+  }
+  .flashcard{
+    width:100%;
+    max-width:340px;
+    height:260px;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform .45s cubic-bezier(.4,.2,.2,1);
+    cursor:pointer;
+  }
+  .flashcard.flipped{ transform:rotateY(180deg); }
+  .flashcard-face{
+    position:absolute;
+    inset:0;
+    backface-visibility:hidden;
+    border-radius:20px;
+    border:2px solid var(--gray-line);
+    background:white;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:26px;
+    text-align:center;
+    box-shadow:0 4px 0 var(--gray-line);
+  }
+  .flashcard-face.back{
+    transform:rotateY(180deg);
+    background:var(--green-soft);
+    border-color:var(--green);
+    box-shadow:0 4px 0 var(--green);
+  }
+  .face-tag{
+    position:absolute;
+    top:16px; left:16px;
+    font-family:'Baloo 2';
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--ink-soft);
+    background:var(--gray-bg);
+    padding:4px 10px;
+    border-radius:999px;
+  }
+  .face-tag.back{ color:var(--green-dark); background:rgba(255,255,255,0.6); }
+  .face-topic{
+    position:absolute;
+    top:16px; right:16px;
+    font-family:'Baloo 2';
+    font-size:11px;
+    font-weight:700;
+    color:var(--blue-dark);
+    background:var(--blue-soft);
+    padding:4px 10px;
+    border-radius:999px;
+  }
+  .face-text{
+    font-size:19px;
+    font-weight:700;
+    line-height:1.4;
+    color:var(--ink);
+    max-height:150px;
+    overflow-y:auto;
+  }
+  .flip-hint{
+    text-align:center;
+    font-size:13px;
+    color:var(--ink-soft);
+    font-weight:700;
+    margin-bottom:20px;
+  }
+
+  .answer-buttons{
+    display:flex;
+    gap:12px;
+    opacity:0;
+    transform:translateY(8px);
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .answer-buttons.show{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+  }
+
+  /* ---------- RESULTS ---------- */
+  .results-view{
+    align-items:center;
+    text-align:center;
+    justify-content:center;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  .result-badge{
+    width:110px; height:110px;
+    border-radius:50%;
+    background:var(--yellow);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 5px 0 var(--yellow-dark);
+    margin-bottom:22px;
+  }
+  .result-badge svg{ width:56px;height:56px; color:white; }
+  .result-title{
+    font-size:24px;
+    margin-bottom:8px;
+  }
+  .result-sub{
+    color:var(--ink-soft);
+    font-size:15px;
+    margin-bottom:26px;
+  }
+  .result-stats{
+    display:flex;
+    gap:14px;
+    width:100%;
+    margin-bottom:30px;
+  }
+  .result-stat{
+    flex:1;
+    background:var(--gray-bg);
+    border-radius:14px;
+    padding:16px 10px;
+  }
+  .result-stat-num{
+    font-family:'Baloo 2';
+    font-size:26px;
+    font-weight:800;
+  }
+  .result-stat.correct .result-stat-num{ color:var(--green); }
+  .result-stat.wrong .result-stat-num{ color:var(--red); }
+  .result-stat-label{
+    font-size:12px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+
+  .confetti-piece{
+    position:absolute;
+    top:-10px;
+    width:8px; height:14px;
+    border-radius:2px;
+    animation:confettiFall 1.4s ease-in forwards;
+    opacity:0.95;
+  }
+  @keyframes confettiFall{
+    to{ transform:translateY(340px) rotate(400deg); opacity:0; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <div class="lock-screen" id="lockScreen">
+    <div class="lock-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <h2 class="heading lock-title">DataPrev Flash</h2>
+    <p class="lock-sub">Digite a senha para acessar seus flashcards.</p>
+    <input type="password" id="lockPasswordInput" placeholder="Senha" autocomplete="off">
+    <p class="lock-error" id="lockError">Senha incorreta. Tente de novo.</p>
+    <button class="btn btn-green" id="btnUnlock">Entrar</button>
+  </div>
+
+  <div class="hidden" id="mainContent">
+
+  <div class="config-warning hidden" id="configWarning">
+    Configure sua conexão com o Supabase: preencha SUPABASE_URL e SUPABASE_ANON_KEY no início do arquivo para os dados começarem a salvar.
+  </div>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-badge">DP</div>
+      <div class="brand-title">DataPrev Flash</div>
+    </div>
+    <div class="streak" id="streakChip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 2 5 0 8a8 8 0 0 1-14 -5c0-4 3-5 3-9 1 1 2 2 2 4 0-2 1-4 3-5z"/></svg>
+      <span id="streakNum">0</span>
+    </div>
+  </div>
+
+  <!-- HOME VIEW -->
+  <div class="view" id="view-home">
+    <div class="hero-card">
+      <div class="hero-num" id="cardCount">0</div>
+      <div class="hero-label">cards no seu baralho DATAPREV</div>
+    </div>
+
+    <div class="stack">
+      <button class="btn btn-green" id="btnStudy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+        Estudar
+      </button>
+      <button class="btn btn-outline" id="btnAdd">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Adicionar card
+      </button>
+    </div>
+
+    <div class="review-mistakes hidden" id="btnReviewMistakes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/></svg>
+      <span>Revisar não lembrados</span>
+      <span class="count-badge" id="mistakeCount">0</span>
+    </div>
+
+    <div id="listWrap">
+      <div class="section-title">Seus cards</div>
+      <div id="cardList"></div>
+    </div>
+
+    <div class="empty-state hidden" id="emptyState">
+      <div class="empty-illustration">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg>
+      </div>
+      <div class="empty-title">Seu baralho está vazio</div>
+      <div class="empty-sub">Adicione seu primeiro card com uma pergunta<br>e a resposta para começar a estudar.</div>
+    </div>
+  </div>
+
+  <!-- ADD VIEW -->
+  <div class="view hidden" id="view-add">
+    <p class="field-label">Assunto</p>
+    <div class="chip-row" id="topicChipRow"></div>
+    <div class="new-topic-row" id="newTopicRow">
+      <input type="text" id="inputNewTopic" placeholder="Nome do novo assunto">
+      <button id="btnConfirmTopic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+    </div>
+
+    <p class="field-label">Frente do card (pergunta)</p>
+    <textarea id="inputFront" placeholder="Ex: O que é a LGPD?"></textarea>
+    <p class="field-label">Verso do card (resposta)</p>
+    <textarea id="inputBack" placeholder="Ex: Lei Geral de Proteção de Dados..."></textarea>
+    <p class="error-msg" id="formError">Escolha um assunto e preencha os dois campos.</p>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="btnCancelAdd">Cancelar</button>
+      <button class="btn btn-green" id="btnSaveCard">Salvar</button>
+    </div>
+  </div>
+
+  <!-- TOPIC SELECT VIEW (before studying) -->
+  <div class="view hidden" id="view-topics">
+    <h2 class="heading" style="font-size:20px; margin-bottom:4px;">O que vamos revisar?</h2>
+    <p style="color:var(--ink-soft); font-size:14px; margin:0 0 20px;">Por padrão todos os assuntos entram na revisão.</p>
+    <div class="topic-select-list" id="topicSelectList"></div>
+    <p class="error-msg" id="topicError">Selecione ao menos um assunto com cards.</p>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="btnCancelTopics">Voltar</button>
+      <button class="btn btn-green" id="btnStartWithTopics">Começar</button>
+    </div>
+  </div>
+
+  <!-- STUDY VIEW -->
+  <div class="view hidden" id="view-study">
+    <button class="study-close" id="btnCloseStudy" aria-label="Fechar estudo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-meta">
+      <span id="progressLabel">Card 1 de 1</span>
+      <span id="progressScore">0 acertos</span>
+    </div>
+
+    <div class="card-stage">
+      <div class="flashcard" id="flashcard">
+        <div class="flashcard-face front">
+          <span class="face-tag">Pergunta</span>
+          <span class="face-topic" id="faceTopicFront"></span>
+          <div class="face-text" id="faceFront"></div>
+        </div>
+        <div class="flashcard-face back">
+          <span class="face-tag back">Resposta</span>
+          <div class="face-text" id="faceBack"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="flip-hint" id="flipHint">Toque no card para virar</p>
+
+    <div class="answer-buttons" id="answerButtons">
+      <button class="btn btn-red" id="btnWrong">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Não lembrei
+      </button>
+      <button class="btn btn-green" id="btnRight">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Lembrei
+      </button>
+    </div>
+  </div>
+
+  <!-- RESULTS VIEW -->
+  <div class="view results-view hidden" id="view-results">
+    <div class="result-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.4 6.9.7-5.2 4.7 1.6 6.8L12 17l-6.2 3.6 1.6-6.8-5.2-4.7 6.9-.7z"/></svg>
+    </div>
+    <h2 class="result-title heading">Sessão concluída!</h2>
+    <p class="result-sub" id="resultSub">Você revisou seus cards.</p>
+    <div class="result-stats">
+      <div class="result-stat correct">
+        <div class="result-stat-num" id="resCorrect">0</div>
+        <div class="result-stat-label">Lembrei</div>
+      </div>
+      <div class="result-stat wrong">
+        <div class="result-stat-num" id="resWrong">0</div>
+        <div class="result-stat-label">Não lembrei</div>
+      </div>
+    </div>
+    <div class="stack" style="width:100%">
+      <button class="btn btn-blue" id="btnStudyMissed">Revisar não lembrados</button>
+      <button class="btn btn-outline" id="btnBackHome">Voltar ao início</button>
+    </div>
+  </div>
+
+  </div>
+
+</div>
+
+<script>
+(function(){
+  // ==== TROQUE AQUI A SENHA DE ACESSO ====
+  var ACCESS_PASSWORD = 'dataprev2026';
+  // =========================================
+  var UNLOCK_KEY = 'dataprev_flash_unlocked';
+
+  var lockScreen = document.getElementById('lockScreen');
+  var mainContent = document.getElementById('mainContent');
+  var lockInput = document.getElementById('lockPasswordInput');
+  var lockError = document.getElementById('lockError');
+  var btnUnlock = document.getElementById('btnUnlock');
+
+  function unlockApp(){
+    lockScreen.classList.add('hidden');
+    mainContent.classList.remove('hidden');
+    loadState();
+  }
+
+  function tryUnlock(){
+    if(lockInput.value === ACCESS_PASSWORD){
+      lockError.classList.remove('show');
+      try{ localStorage.setItem(UNLOCK_KEY, '1'); }catch(e){}
+      unlockApp();
+    } else {
+      lockError.classList.add('show');
+      lockInput.value = '';
+      lockInput.focus();
+    }
+  }
+
+  btnUnlock.addEventListener('click', tryUnlock);
+  lockInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') tryUnlock();
+  });
+
+  var alreadyUnlocked = false;
+  try{ alreadyUnlocked = localStorage.getItem(UNLOCK_KEY) === '1'; }catch(e){}
+
+  if(alreadyUnlocked){
+    unlockApp();
+  } else {
+    setTimeout(function(){ lockInput.focus(); }, 200);
+  }
+
+  // ==== CONFIGURE AQUI SUA CONEXÃO COM O SUPABASE ====
+  var SUPABASE_URL = 'https://jwadbuxqhnsgjmadfcor.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3YWRidXhxaG5zZ2ptYWRmY29yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzOTM3NDYsImV4cCI6MjEwMzk2OTc0Nn0.hEWdbFdG349VrvrQfzByogTpcWn0ESP5E3vUA_xJ9oE';
+  // =====================================================
+
+  var supabase = null;
+  var DEFAULT_TOPIC = 'Geral';
+  var state = { cards: [], topics: [], streak: 0, bestStreak: 0, lastStudyDate: null };
+  var session = null;
+  var selectedTopicForAdd = null;
+  var selectedTopicsForStudy = [];
+
+  var els = {
+    streakChip: document.getElementById('streakChip'),
+    streakNum: document.getElementById('streakNum'),
+    cardCount: document.getElementById('cardCount'),
+    btnStudy: document.getElementById('btnStudy'),
+    btnAdd: document.getElementById('btnAdd'),
+    btnReviewMistakes: document.getElementById('btnReviewMistakes'),
+    mistakeCount: document.getElementById('mistakeCount'),
+    listWrap: document.getElementById('listWrap'),
+    cardList: document.getElementById('cardList'),
+    emptyState: document.getElementById('emptyState'),
+
+    viewHome: document.getElementById('view-home'),
+    viewAdd: document.getElementById('view-add'),
+    viewTopics: document.getElementById('view-topics'),
+    viewStudy: document.getElementById('view-study'),
+    viewResults: document.getElementById('view-results'),
+
+    topicChipRow: document.getElementById('topicChipRow'),
+    newTopicRow: document.getElementById('newTopicRow'),
+    inputNewTopic: document.getElementById('inputNewTopic'),
+    btnConfirmTopic: document.getElementById('btnConfirmTopic'),
+    inputFront: document.getElementById('inputFront'),
+    inputBack: document.getElementById('inputBack'),
+    formError: document.getElementById('formError'),
+    btnCancelAdd: document.getElementById('btnCancelAdd'),
+    btnSaveCard: document.getElementById('btnSaveCard'),
+
+    topicSelectList: document.getElementById('topicSelectList'),
+    topicError: document.getElementById('topicError'),
+    btnCancelTopics: document.getElementById('btnCancelTopics'),
+    btnStartWithTopics: document.getElementById('btnStartWithTopics'),
+
+    btnCloseStudy: document.getElementById('btnCloseStudy'),
+    progressFill: document.getElementById('progressFill'),
+    progressLabel: document.getElementById('progressLabel'),
+    progressScore: document.getElementById('progressScore'),
+    flashcard: document.getElementById('flashcard'),
+    faceFront: document.getElementById('faceFront'),
+    faceTopicFront: document.getElementById('faceTopicFront'),
+    faceBack: document.getElementById('faceBack'),
+    flipHint: document.getElementById('flipHint'),
+    answerButtons: document.getElementById('answerButtons'),
+    btnWrong: document.getElementById('btnWrong'),
+    btnRight: document.getElementById('btnRight'),
+
+    resultSub: document.getElementById('resultSub'),
+    resCorrect: document.getElementById('resCorrect'),
+    resWrong: document.getElementById('resWrong'),
+    btnStudyMissed: document.getElementById('btnStudyMissed'),
+    btnBackHome: document.getElementById('btnBackHome')
+  };
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  function todayStr(){
+    var d = new Date();
+    return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  }
+
+  function daysBetween(a,b){
+    var da = new Date(a), db = new Date(b);
+    return Math.round((db - da) / 86400000);
+  }
+
+  function escapeHtml(str){
+    var d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function showConfigWarning(){
+    var el = document.getElementById('configWarning');
+    if(el) el.classList.remove('hidden');
+  }
+
+  function initSupabase(){
+    if(SUPABASE_URL.indexOf('COLOQUE_AQUI') !== -1 || SUPABASE_ANON_KEY.indexOf('COLOQUE_AQUI') !== -1){
+      showConfigWarning();
+      return false;
+    }
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return true;
+  }
+
+  async function loadState(){
+    if(!initSupabase()){
+      renderHome();
+      renderStreak();
+      return;
+    }
+    try{
+      var cardsRes = await supabase.from('cards').select('*').order('created_at', { ascending:true });
+      if(cardsRes.error) throw cardsRes.error;
+      state.cards = (cardsRes.data || []).map(function(c){
+        return {
+          id:c.id, front:c.front, back:c.back,
+          topic: c.topic || DEFAULT_TOPIC,
+          needsReview: !!c.needs_review
+        };
+      });
+
+      var topicsRes = await supabase.from('topics').select('name').order('name', { ascending:true });
+      if(topicsRes.error) throw topicsRes.error;
+      state.topics = (topicsRes.data || []).map(function(t){ return t.name; });
+
+      var metaRes = await supabase.from('app_meta').select('*').eq('id', 1).limit(1);
+      if(metaRes.error) throw metaRes.error;
+      if(metaRes.data && metaRes.data.length){
+        state.streak = metaRes.data[0].streak || 0;
+        state.bestStreak = metaRes.data[0].best_streak || 0;
+        state.lastStudyDate = metaRes.data[0].last_study_date || null;
+      }
+
+      // garante que todo assunto usado por um card exista na lista de assuntos
+      state.cards.forEach(function(c){
+        if(state.topics.indexOf(c.topic) === -1) state.topics.push(c.topic);
+      });
+    }catch(e){
+      console.error('Erro ao carregar dados do Supabase:', e);
+      showConfigWarning();
+    }
+
+    renderHome();
+    renderStreak();
+  }
+
+  function saveMeta(){
+    if(!supabase) return;
+    supabase.from('app_meta').update({
+      streak: state.streak,
+      best_streak: state.bestStreak,
+      last_study_date: state.lastStudyDate
+    }).eq('id', 1).then(function(res){
+      if(res.error) console.error('Erro ao salvar progresso:', res.error);
+    });
+  }
+
+  function insertCardRemote(card){
+    if(!supabase) return;
+    supabase.from('cards').insert({
+      id: card.id, front: card.front, back: card.back,
+      topic: card.topic, needs_review: card.needsReview
+    }).then(function(res){
+      if(res.error) console.error('Erro ao salvar card:', res.error);
+    });
+  }
+
+  function deleteCardRemote(id){
+    if(!supabase) return;
+    supabase.from('cards').delete().eq('id', id).then(function(res){
+      if(res.error) console.error('Erro ao excluir card:', res.error);
+    });
+  }
+
+  function updateCardReviewRemote(id, needsReview){
+    if(!supabase) return;
+    supabase.from('cards').update({ needs_review: needsReview }).eq('id', id).then(function(res){
+      if(res.error) console.error('Erro ao atualizar card:', res.error);
+    });
+  }
+
+  function insertTopicRemote(name){
+    if(!supabase) return;
+    supabase.from('topics').upsert({ name: name }, { onConflict: 'name' }).then(function(res){
+      if(res.error) console.error('Erro ao salvar assunto:', res.error);
+    });
+  }
+
+  function showView(name){
+    [els.viewHome, els.viewAdd, els.viewTopics, els.viewStudy, els.viewResults].forEach(function(v){ v.classList.add('hidden'); });
+    if(name==='home') els.viewHome.classList.remove('hidden');
+    if(name==='add') els.viewAdd.classList.remove('hidden');
+    if(name==='topics') els.viewTopics.classList.remove('hidden');
+    if(name==='study') els.viewStudy.classList.remove('hidden');
+    if(name==='results') els.viewResults.classList.remove('hidden');
+  }
+
+  function renderStreak(){
+    els.streakNum.textContent = state.streak;
+  }
+
+  function pulseStreak(){
+    els.streakChip.classList.remove('pulse');
+    void els.streakChip.offsetWidth;
+    els.streakChip.classList.add('pulse');
+  }
+
+  function renderHome(){
+    els.cardCount.textContent = state.cards.length;
+    var canStudy = state.cards.length > 0;
+    els.btnStudy.classList.toggle('btn-disabled', !canStudy);
+
+    var mistakes = state.cards.filter(function(c){ return c.needsReview; });
+    if(mistakes.length > 0){
+      els.btnReviewMistakes.classList.remove('hidden');
+      els.mistakeCount.textContent = mistakes.length;
+    } else {
+      els.btnReviewMistakes.classList.add('hidden');
+    }
+
+    if(state.cards.length === 0){
+      els.listWrap.classList.add('hidden');
+      els.emptyState.classList.remove('hidden');
+      return;
+    }
+    els.listWrap.classList.remove('hidden');
+    els.emptyState.classList.add('hidden');
+
+    els.cardList.innerHTML = state.cards.map(function(c){
+      return '<div class="card-row" data-id="'+c.id+'">'+
+        '<div class="card-row-text">'+
+          '<div class="card-row-top">'+
+            '<span class="topic-badge">'+escapeHtml(c.topic)+'</span>'+
+            (c.needsReview ? '<span class="mistake-dot" title="Não lembrado"></span>' : '')+
+          '</div>'+
+          '<div class="card-row-front">'+escapeHtml(c.front)+'</div>'+
+          '<div class="card-row-back">'+escapeHtml(c.back)+'</div>'+
+        '</div>'+
+        '<button class="icon-btn" data-del="'+c.id+'" aria-label="Excluir card">'+
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'+
+        '</button>'+
+      '</div>';
+    }).join('');
+
+    Array.prototype.forEach.call(els.cardList.querySelectorAll('[data-del]'), function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var id = btn.getAttribute('data-del');
+        state.cards = state.cards.filter(function(c){ return c.id !== id; });
+        renderHome();
+        deleteCardRemote(id);
+      });
+    });
+  }
+
+  // ---------- ADD CARD ----------
+  function renderTopicChips(){
+    var chips = state.topics.map(function(t){
+      var sel = t === selectedTopicForAdd ? ' selected' : '';
+      return '<div class="chip'+sel+'" data-topic="'+escapeHtml(t)+'">'+escapeHtml(t)+'</div>';
+    }).join('');
+    chips += '<div class="chip add-chip" id="chipAddTopic">'+
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'+
+      'Novo assunto</div>';
+    els.topicChipRow.innerHTML = chips;
+
+    Array.prototype.forEach.call(els.topicChipRow.querySelectorAll('[data-topic]'), function(chip){
+      chip.addEventListener('click', function(){
+        selectedTopicForAdd = chip.getAttribute('data-topic');
+        els.newTopicRow.classList.remove('show');
+        renderTopicChips();
+      });
+    });
+    document.getElementById('chipAddTopic').addEventListener('click', function(){
+      els.newTopicRow.classList.add('show');
+      els.inputNewTopic.value = '';
+      els.inputNewTopic.focus();
+    });
+  }
+
+  els.btnConfirmTopic.addEventListener('click', function(){
+    var name = els.inputNewTopic.value.trim();
+    if(!name) return;
+    if(state.topics.indexOf(name) === -1){
+      state.topics.push(name);
+      insertTopicRemote(name);
+    }
+    selectedTopicForAdd = name;
+    els.newTopicRow.classList.remove('show');
+    renderTopicChips();
+  });
+  els.inputNewTopic.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); els.btnConfirmTopic.click(); }
+  });
+
+  els.btnAdd.addEventListener('click', function(){
+    els.inputFront.value = '';
+    els.inputBack.value = '';
+    els.formError.classList.remove('show');
+    els.newTopicRow.classList.remove('show');
+    if(!selectedTopicForAdd) selectedTopicForAdd = state.topics[0] || null;
+    renderTopicChips();
+    showView('add');
+    setTimeout(function(){ els.inputFront.focus(); }, 250);
+  });
+  els.btnCancelAdd.addEventListener('click', function(){ showView('home'); });
+
+  els.btnSaveCard.addEventListener('click', function(){
+    var front = els.inputFront.value.trim();
+    var back = els.inputBack.value.trim();
+    if(!front || !back || !selectedTopicForAdd){
+      els.formError.classList.add('show');
+      return;
+    }
+    els.formError.classList.remove('show');
+    var newCard = { id: uid(), front: front, back: back, topic: selectedTopicForAdd, needsReview:false };
+    state.cards.push(newCard);
+    renderHome();
+    insertCardRemote(newCard);
+    showView('home');
+  });
+
+  // ---------- TOPIC SELECT (before study) ----------
+  function openTopicSelect(){
+    selectedTopicsForStudy = state.topics.slice(); // default: all selected
+    renderTopicSelectList();
+    els.topicError.classList.remove('show');
+    showView('topics');
+  }
+
+  function renderTopicSelectList(){
+    els.topicSelectList.innerHTML = state.topics.map(function(t){
+      var count = state.cards.filter(function(c){ return c.topic === t; }).length;
+      var sel = selectedTopicsForStudy.indexOf(t) !== -1 ? ' selected' : '';
+      return '<div class="topic-select-row'+sel+'" data-topic="'+escapeHtml(t)+'">'+
+        '<div class="topic-select-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>'+
+        '<div class="topic-select-name">'+escapeHtml(t)+'</div>'+
+        '<div class="topic-select-count">'+count+' cards</div>'+
+      '</div>';
+    }).join('');
+
+    Array.prototype.forEach.call(els.topicSelectList.querySelectorAll('[data-topic]'), function(row){
+      row.addEventListener('click', function(){
+        var t = row.getAttribute('data-topic');
+        var idx = selectedTopicsForStudy.indexOf(t);
+        if(idx === -1) selectedTopicsForStudy.push(t);
+        else selectedTopicsForStudy.splice(idx,1);
+        renderTopicSelectList();
+      });
+    });
+  }
+
+  els.btnStudy.addEventListener('click', function(){
+    if(state.cards.length === 0) return;
+    openTopicSelect();
+  });
+  els.btnCancelTopics.addEventListener('click', function(){ showView('home'); });
+
+  els.btnStartWithTopics.addEventListener('click', function(){
+    var pool = state.cards.filter(function(c){ return selectedTopicsForStudy.indexOf(c.topic) !== -1; });
+    if(pool.length === 0){
+      els.topicError.classList.add('show');
+      return;
+    }
+    els.topicError.classList.remove('show');
+    startSession(pool);
+  });
+
+  // ---------- STUDY SESSION ----------
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t=a[i]; a[i]=a[j]; a[j]=t;
+    }
+    return a;
+  }
+
+  function startSession(cardsForSession){
+    session = {
+      queue: shuffle(cardsForSession),
+      index: 0,
+      correct: 0,
+      wrong: 0,
+      missed: []
+    };
+    showView('study');
+    renderCard();
+  }
+
+  els.btnReviewMistakes.addEventListener('click', function(){
+    var pool = state.cards.filter(function(c){ return c.needsReview; });
+    if(pool.length === 0) return;
+    startSession(pool);
+  });
+
+  els.btnCloseStudy.addEventListener('click', function(){
+    showView('home');
+    renderHome();
+  });
+
+  function renderCard(){
+    var total = session.queue.length;
+    var idx = session.index;
+    var card = session.queue[idx];
+
+    els.flashcard.classList.remove('flipped');
+    els.answerButtons.classList.remove('show');
+    els.flipHint.style.opacity = '1';
+
+    els.faceFront.textContent = card.front;
+    els.faceTopicFront.textContent = card.topic;
+    els.faceBack.textContent = card.back;
+
+    els.progressLabel.textContent = 'Card ' + (idx+1) + ' de ' + total;
+    els.progressScore.textContent = session.correct + ' acertos';
+    els.progressFill.style.width = Math.round((idx/total)*100) + '%';
+  }
+
+  els.flashcard.addEventListener('click', function(){
+    var isFlipped = els.flashcard.classList.toggle('flipped');
+    if(isFlipped){
+      els.answerButtons.classList.add('show');
+      els.flipHint.style.opacity = '0';
+    } else {
+      els.answerButtons.classList.remove('show');
+      els.flipHint.style.opacity = '1';
+    }
+  });
+
+  function findCardById(id){
+    for(var i=0;i<state.cards.length;i++){
+      if(state.cards[i].id === id) return state.cards[i];
+    }
+    return null;
+  }
+
+  function answer(isCorrect){
+    var sessionCard = session.queue[session.index];
+    var masterCard = findCardById(sessionCard.id);
+
+    if(isCorrect){
+      session.correct++;
+      if(masterCard) masterCard.needsReview = false;
+    } else {
+      session.wrong++;
+      session.missed.push(sessionCard);
+      if(masterCard) masterCard.needsReview = true;
+    }
+    if(masterCard) updateCardReviewRemote(masterCard.id, masterCard.needsReview);
+    session.index++;
+    if(session.index >= session.queue.length){
+      finishSession();
+    } else {
+      renderCard();
+    }
+  }
+
+  els.btnRight.addEventListener('click', function(e){ e.stopPropagation(); answer(true); });
+  els.btnWrong.addEventListener('click', function(e){ e.stopPropagation(); answer(false); });
+
+  function finishSession(){
+    els.progressFill.style.width = '100%';
+    updateStreak();
+
+    els.resCorrect.textContent = session.correct;
+    els.resWrong.textContent = session.wrong;
+    var total = session.correct + session.wrong;
+    var pct = total ? Math.round((session.correct/total)*100) : 0;
+    els.resultSub.textContent = pct + '% de acerto nesta sessão.';
+
+    els.btnStudyMissed.classList.toggle('hidden', session.missed.length === 0);
+
+    showView('results');
+    launchConfetti();
+    saveMeta();
+  }
+
+  function updateStreak(){
+    var today = todayStr();
+    if(state.lastStudyDate === today){
+      // already counted today
+    } else if(state.lastStudyDate && daysBetween(state.lastStudyDate, today) === 1){
+      state.streak += 1;
+    } else {
+      state.streak = 1;
+    }
+    state.lastStudyDate = today;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
+    renderStreak();
+    pulseStreak();
+  }
+
+  els.btnStudyMissed.addEventListener('click', function(){
+    if(!session || session.missed.length === 0) return;
+    startSession(session.missed);
+  });
+
+  els.btnBackHome.addEventListener('click', function(){
+    showView('home');
+    renderHome();
+  });
+
+  function launchConfetti(){
+    var colors = ['#58CC02','#1CB0F6','#FFC800','#FF4B4B'];
+    var container = document.getElementById('view-results');
+    for(var i=0;i<18;i++){
+      var piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = (10 + Math.random()*80) + '%';
+      piece.style.background = colors[i % colors.length];
+      piece.style.animationDelay = (Math.random()*0.3) + 's';
+      piece.style.top = '20px';
+      container.appendChild(piece);
+      (function(p){
+        setTimeout(function(){ p.remove(); }, 1800);
+      })(piece);
+    }
+  }
+
+})();
+</script>
+
+</body>
+</html>
