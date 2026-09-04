@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DataPrev Flash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#58CC02;
+    --green-dark:#46A302;
+    --green-soft:#D7FFB8;
+    --blue:#1CB0F6;
+    --blue-dark:#1899D6;
+    --blue-soft:#E1F3FE;
+    --yellow:#FFC800;
+    --yellow-dark:#E6B400;
+    --yellow-soft:#FFF7DE;
+    --red:#FF4B4B;
+    --red-dark:#E43F3F;
+    --red-soft:#FFEBEB;
+    --gray-line:#E5E5E5;
+    --gray-bg:#F7F7F5;
+    --ink:#3C3C3C;
+    --ink-soft:#777770;
+    --white:#FFFFFF;
+    --radius:16px;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:'Nunito', sans-serif;
+    background:var(--gray-bg);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  h1,h2,h3,.heading{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    margin:0;
+  }
+
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    background:var(--white);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    box-shadow:0 0 40px rgba(0,0,0,0.06);
+  }
+
+  /* ---------- LOCK SCREEN ---------- */
+  .lock-screen{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:32px 28px;
+    text-align:center;
+  }
+  .lock-badge{
+    width:64px;height:64px;
+    background:var(--green);
+    border-radius:18px;
+    display:flex;align-items:center;justify-content:center;
+    color:white;
+    box-shadow:0 4px 0 var(--green-dark);
+    margin-bottom:20px;
+  }
+  .lock-badge svg{ width:30px;height:30px; }
+  .lock-title{ font-size:20px; margin-bottom:6px; }
+  .lock-sub{ color:var(--ink-soft); font-size:14px; margin-bottom:26px; }
+  .lock-screen input{
+    width:100%;
+    max-width:280px;
+    font-family:'Nunito';
+    font-size:17px;
+    text-align:center;
+    letter-spacing:2px;
+    border:2px solid var(--gray-line);
+    border-radius:14px;
+    padding:14px;
+    outline:none;
+    margin-bottom:14px;
+    transition:border-color .15s ease;
+  }
+  .lock-screen input:focus{ border-color:var(--blue); }
+  .lock-screen .btn{ max-width:280px; }
+  .lock-error{
+    color:var(--red);
+    font-size:13px;
+    font-weight:700;
+    margin:-4px 0 14px;
+    display:none;
+  }
+  .lock-error.show{ display:block; }
+
+  /* ---------- HEADER ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 20px 14px;
+    border-bottom:2px solid var(--gray-line);
+    position:sticky;
+    top:0;
+    background:var(--white);
+    z-index:10;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-badge{
+    width:36px;height:36px;
+    background:var(--green);
+    border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    color:white;
+    font-family:'Baloo 2';
+    font-weight:800;
+    font-size:18px;
+    flex-shrink:0;
+    box-shadow:0 3px 0 var(--green-dark);
+  }
+  .brand-title{ font-size:18px; color:var(--ink); }
+  .streak{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:var(--yellow-soft);
+    border:2px solid var(--yellow);
+    padding:6px 12px;
+    border-radius:999px;
+    font-family:'Baloo 2';
+    font-weight:700;
+    font-size:15px;
+    color:#8A6D00;
+    transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+  }
+  .streak.pulse{ animation:streakPulse .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes streakPulse{
+    0%{transform:scale(1);}
+    40%{transform:scale(1.25);}
+    100%{transform:scale(1);}
+  }
+  .streak svg{width:18px;height:18px;flex-shrink:0;}
+
+  /* ---------- VIEWS ---------- */
+  .view{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    padding:24px 20px 32px;
+    animation:viewIn .28s ease;
+  }
+  @keyframes viewIn{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .hidden{display:none !important;}
+
+  /* ---------- HOME ---------- */
+  .hero-card{
+    background:var(--green);
+    border-radius:20px;
+    padding:22px 20px;
+    color:white;
+    margin-bottom:22px;
+    box-shadow:0 4px 0 var(--green-dark);
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-card::after{
+    content:"";
+    position:absolute;
+    right:-30px; top:-30px;
+    width:120px; height:120px;
+    background:rgba(255,255,255,0.12);
+    border-radius:50%;
+  }
+  .hero-num{ font-family:'Baloo 2'; font-size:40px; font-weight:800; line-height:1; }
+  .hero-label{ font-size:14px; font-weight:700; opacity:0.92; margin-top:4px; }
+
+  .btn{
+    font-family:'Baloo 2';
+    font-weight:700;
+    font-size:16px;
+    letter-spacing:0.3px;
+    border:none;
+    border-radius:14px;
+    padding:16px 20px;
+    width:100%;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    color:white;
+    transition:transform .08s ease, box-shadow .08s ease;
+    user-select:none;
+  }
+  .btn svg{width:20px;height:20px;flex-shrink:0;}
+  .btn:active{ transform:translateY(4px); }
+
+  .btn-green{ background:var(--green); box-shadow:0 4px 0 var(--green-dark); }
+  .btn-green:active{ box-shadow:0 0 0 var(--green-dark); }
+
+  .btn-blue{ background:var(--blue); box-shadow:0 4px 0 var(--blue-dark); }
+  .btn-blue:active{ box-shadow:0 0 0 var(--blue-dark); }
+
+  .btn-outline{
+    background:white;
+    color:var(--ink-soft);
+    border:2px solid var(--gray-line);
+    box-shadow:0 4px 0 var(--gray-line);
+  }
+  .btn-outline:active{ box-shadow:0 0 0 var(--gray-line); transform:translateY(4px); }
+
+  .btn-red{ background:var(--red); box-shadow:0 4px 0 var(--red-dark); }
+  .btn-red:active{ box-shadow:0 0 0 var(--red-dark); }
+
+  .btn-disabled{
+    background:#E5E5E5 !important;
+    color:#AFAFAA !important;
+    box-shadow:0 4px 0 #D0D0CB !important;
+    cursor:not-allowed;
+    pointer-events:none;
+  }
+
+  .btn-row{ display:flex; gap:12px; }
+  .btn-row .btn{ flex:1; }
+
+  .stack{ display:flex; flex-direction:column; gap:12px; margin-bottom:8px; }
+
+  .review-mistakes{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    background:var(--red-soft);
+    color:var(--red-dark);
+    border:2px solid #FFD2D2;
+    font-family:'Baloo 2';
+    font-weight:700;
+    font-size:14px;
+    padding:11px 16px;
+    border-radius:14px;
+    margin-bottom:22px;
+    cursor:pointer;
+    transition:transform .08s ease;
+  }
+  .review-mistakes:active{ transform:scale(0.97); }
+  .review-mistakes svg{ width:17px;height:17px; flex-shrink:0; }
+  .review-mistakes .count-badge{
+    background:var(--red);
+    color:white;
+    font-size:12px;
+    min-width:20px;
+    height:20px;
+    padding:0 6px;
+    border-radius:999px;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  .section-title{
+    font-size:14px;
+    color:var(--ink-soft);
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    margin:26px 0 12px;
+  }
+
+  .card-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 14px;
+    border:2px solid var(--gray-line);
+    border-radius:14px;
+    margin-bottom:10px;
+  }
+  .card-row-text{ flex:1; min-width:0; }
+  .card-row-top{ display:flex; align-items:center; gap:8px; margin-bottom:3px; }
+  .topic-badge{
+    font-family:'Baloo 2';
+    font-size:11px;
+    font-weight:700;
+    color:var(--blue-dark);
+    background:var(--blue-soft);
+    padding:2px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .mistake-dot{ width:8px;height:8px; border-radius:50%; background:var(--red); flex-shrink:0; }
+  .card-row-front{
+    font-weight:700;
+    font-size:15px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .card-row-back{
+    font-size:13px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    margin-top:2px;
+  }
+
+  /* ---------- TOPIC SELECT (before study) ---------- */
+  .topic-select-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
+  .topic-select-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 16px;
+    border:2px solid var(--gray-line);
+    border-radius:14px;
+    cursor:pointer;
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .topic-select-row.selected{ border-color:var(--green); background:var(--green-soft); }
+  .topic-select-check{
+    width:24px;height:24px;
+    border-radius:8px;
+    border:2px solid var(--gray-line);
+    background:white;
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    transition:all .12s ease;
+  }
+  .topic-select-row.selected .topic-select-check{ background:var(--green); border-color:var(--green); }
+  .topic-select-check svg{ width:15px;height:15px; color:white; opacity:0; transition:opacity .1s ease; }
+  .topic-select-row.selected .topic-select-check svg{ opacity:1; }
+  .topic-select-name{ flex:1; font-family:'Baloo 2'; font-weight:700; font-size:15px; }
+  .topic-select-count{ font-size:13px; color:var(--ink-soft); font-weight:700; }
+
+  /* ---------- STUDY ---------- */
+  .progress-track{
+    height:16px;
+    background:var(--gray-line);
+    border-radius:999px;
+    overflow:hidden;
+    margin-bottom:10px;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--green);
+    border-radius:999px;
+    transition:width .35s ease;
+    width:0%;
+  }
+  .progress-meta{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin-bottom:26px;
+  }
+  .study-close{
+    background:none;border:none;color:var(--ink-soft);cursor:pointer;
+    padding:4px; margin-bottom:4px; align-self:flex-start;
+  }
+  .study-close svg{ width:24px;height:24px; }
+
+  .card-stage{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    perspective:1400px;
+    margin:8px 0 26px;
+    min-height:280px;
+  }
+  .flashcard{
+    width:100%;
+    max-width:340px;
+    height:260px;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform .45s cubic-bezier(.4,.2,.2,1);
+    cursor:pointer;
+  }
+  .flashcard.flipped{ transform:rotateY(180deg); }
+  .flashcard-face{
+    position:absolute;
+    inset:0;
+    backface-visibility:hidden;
+    border-radius:20px;
+    border:2px solid var(--gray-line);
+    background:white;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:26px;
+    text-align:center;
+    box-shadow:0 4px 0 var(--gray-line);
+  }
+  .flashcard-face.back{
+    transform:rotateY(180deg);
+    background:var(--green-soft);
+    border-color:var(--green);
+    box-shadow:0 4px 0 var(--green);
+  }
+  .face-tag{
+    position:absolute;
+    top:16px; left:16px;
+    font-family:'Baloo 2';
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--ink-soft);
+    background:var(--gray-bg);
+    padding:4px 10px;
+    border-radius:999px;
+  }
+  .face-tag.back{ color:var(--green-dark); background:rgba(255,255,255,0.6); }
+  .face-topic{
+    position:absolute;
+    top:16px; right:16px;
+    font-family:'Baloo 2';
+    font-size:11px;
+    font-weight:700;
+    color:var(--blue-dark);
+    background:var(--blue-soft);
+    padding:4px 10px;
+    border-radius:999px;
+  }
+  .face-text{
+    font-size:19px;
+    font-weight:700;
+    line-height:1.4;
+    color:var(--ink);
+    max-height:150px;
+    overflow-y:auto;
+  }
+  .flip-hint{
+    text-align:center;
+    font-size:13px;
+    color:var(--ink-soft);
+    font-weight:700;
+    margin-bottom:20px;
+  }
+
+  .answer-buttons{
+    display:flex;
+    gap:12px;
+    opacity:0;
+    transform:translateY(8px);
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .answer-buttons.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
+
+  /* ---------- RESULTS ---------- */
+  .results-view{
+    align-items:center;
+    text-align:center;
+    justify-content:center;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  .result-badge{
+    width:110px; height:110px;
+    border-radius:50%;
+    background:var(--yellow);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 5px 0 var(--yellow-dark);
+    margin-bottom:22px;
+  }
+  .result-badge svg{ width:56px;height:56px; color:white; }
+  .result-title{ font-size:24px; margin-bottom:8px; }
+  .result-sub{ color:var(--ink-soft); font-size:15px; margin-bottom:26px; }
+  .result-stats{ display:flex; gap:14px; width:100%; margin-bottom:30px; }
+  .result-stat{ flex:1; background:var(--gray-bg); border-radius:14px; padding:16px 10px; }
+  .result-stat-num{ font-family:'Baloo 2'; font-size:26px; font-weight:800; }
+  .result-stat.correct .result-stat-num{ color:var(--green); }
+  .result-stat.wrong .result-stat-num{ color:var(--red); }
+  .result-stat-label{ font-size:12px; font-weight:700; color:var(--ink-soft); margin-top:2px; }
+
+  .confetti-piece{
+    position:absolute;
+    top:-10px;
+    width:8px; height:14px;
+    border-radius:2px;
+    animation:confettiFall 1.4s ease-in forwards;
+    opacity:0.95;
+  }
+  @keyframes confettiFall{
+    to{ transform:translateY(340px) rotate(400deg); opacity:0; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <div class="lock-screen" id="lockScreen">
+    <div class="lock-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <h2 class="heading lock-title">DataPrev Flash</h2>
+    <p class="lock-sub">Digite a senha para acessar seus flashcards.</p>
+    <input type="password" id="lockPasswordInput" placeholder="Senha" autocomplete="off">
+    <p class="lock-error" id="lockError">Senha incorreta. Tente de novo.</p>
+    <button class="btn btn-green" id="btnUnlock">Entrar</button>
+  </div>
+
+  <div class="hidden" id="mainContent">
+
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-badge">DP</div>
+        <div class="brand-title">DataPrev Flash</div>
+      </div>
+      <div class="streak" id="streakChip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 2 5 0 8a8 8 0 0 1-14 -5c0-4 3-5 3-9 1 1 2 2 2 4 0-2 1-4 3-5z"/></svg>
+        <span id="streakNum">0</span>
+      </div>
+    </div>
+
+    <!-- HOME VIEW -->
+    <div class="view" id="view-home">
+      <div class="hero-card">
+        <div class="hero-num" id="cardCount">0</div>
+        <div class="hero-label">cards no seu baralho DATAPREV</div>
+      </div>
+
+      <div class="stack">
+        <button class="btn btn-green" id="btnStudy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          Estudar
+        </button>
+      </div>
+
+      <div class="review-mistakes hidden" id="btnReviewMistakes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/></svg>
+        <span>Revisar não lembrados</span>
+        <span class="count-badge" id="mistakeCount">0</span>
+      </div>
+
+      <div id="listWrap">
+        <div class="section-title">Seus cards</div>
+        <div id="cardList"></div>
+      </div>
+    </div>
+
+    <!-- TOPIC SELECT VIEW (before studying) -->
+    <div class="view hidden" id="view-topics">
+      <h2 class="heading" style="font-size:20px; margin-bottom:4px;">O que vamos revisar?</h2>
+      <p style="color:var(--ink-soft); font-size:14px; margin:0 0 20px;">Por padrão todos os assuntos entram na revisão.</p>
+      <div class="topic-select-list" id="topicSelectList"></div>
+      <p class="lock-error show" id="topicError" style="display:none;">Selecione ao menos um assunto com cards.</p>
+      <div class="btn-row">
+        <button class="btn btn-outline" id="btnCancelTopics">Voltar</button>
+        <button class="btn btn-green" id="btnStartWithTopics">Começar</button>
+      </div>
+    </div>
+
+    <!-- STUDY VIEW -->
+    <div class="view hidden" id="view-study">
+      <button class="study-close" id="btnCloseStudy" aria-label="Fechar estudo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-meta">
+        <span id="progressLabel">Card 1 de 1</span>
+        <span id="progressScore">0 acertos</span>
+      </div>
+
+      <div class="card-stage">
+        <div class="flashcard" id="flashcard">
+          <div class="flashcard-face front">
+            <span class="face-tag">Pergunta</span>
+            <span class="face-topic" id="faceTopicFront"></span>
+            <div class="face-text" id="faceFront"></div>
+          </div>
+          <div class="flashcard-face back">
+            <span class="face-tag back">Resposta</span>
+            <div class="face-text" id="faceBack"></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="flip-hint" id="flipHint">Toque no card para virar</p>
+
+      <div class="answer-buttons" id="answerButtons">
+        <button class="btn btn-red" id="btnWrong">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Não lembrei
+        </button>
+        <button class="btn btn-green" id="btnRight">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Lembrei
+        </button>
+      </div>
+    </div>
+
+    <!-- RESULTS VIEW -->
+    <div class="view results-view hidden" id="view-results">
+      <div class="result-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.4 6.9.7-5.2 4.7 1.6 6.8L12 17l-6.2 3.6 1.6-6.8-5.2-4.7 6.9-.7z"/></svg>
+      </div>
+      <h2 class="result-title heading">Sessão concluída!</h2>
+      <p class="result-sub" id="resultSub">Você revisou seus cards.</p>
+      <div class="result-stats">
+        <div class="result-stat correct">
+          <div class="result-stat-num" id="resCorrect">0</div>
+          <div class="result-stat-label">Lembrei</div>
+        </div>
+        <div class="result-stat wrong">
+          <div class="result-stat-num" id="resWrong">0</div>
+          <div class="result-stat-label">Não lembrei</div>
+        </div>
+      </div>
+      <div class="stack" style="width:100%">
+        <button class="btn btn-blue" id="btnStudyMissed">Revisar não lembrados</button>
+        <button class="btn btn-outline" id="btnBackHome">Voltar ao início</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  // =====================================================================
+  // SEUS CARDS FICAM AQUI. Para adicionar/editar, mexa só nesta lista.
+  // "topic" agrupa os cards por matéria (LGPD, LAI, ITIL v4 etc.)
+  // "id" precisa ser único — pode ser qualquer texto, desde que não repita.
+  // =====================================================================
+  var CARDS_DATA = [
+
+    // ===================== LAI =====================
+    { id:'lai-1', topic:'LAI', front:'O que é a LAI e qual sua lei?', back:'Lei de Acesso à Informação — Lei nº 12.527/2011. Regula o acesso a informações públicas, tornando a publicidade a regra e o sigilo a exceção.' },
+    { id:'lai-2', topic:'LAI', front:'Qual o prazo padrão de resposta a um pedido de acesso à informação?', back:'20 dias, prorrogável por mais 10 dias mediante justificativa expressa comunicada ao solicitante.' },
+    { id:'lai-3', topic:'LAI', front:'Quais são as classificações de sigilo previstas na LAI e seus prazos máximos?', back:'Ultrassecreta (25 anos), Secreta (15 anos) e Reservada (5 anos), contados da data de produção do documento.' },
+    { id:'lai-4', topic:'LAI', front:'A LAI se aplica a quais entes?', back:'Órgãos públicos dos três Poderes e todas as esferas (União, Estados, DF, Municípios), e também entidades privadas sem fins lucrativos que recebem recursos públicos, no que se refere à parcela dos recursos recebidos.' },
+    { id:'lai-5', topic:'LAI', front:'O que é informação de acesso restrito por serem "pessoais" na LAI?', back:'Informações relacionadas à intimidade, vida privada, honra e imagem das pessoas — têm acesso restrito por 100 anos a partir da data de produção, independente de classificação.' },
+    { id:'lai-6', topic:'LAI', front:'A negativa de acesso à informação exige o quê?', back:'Fundamentação/motivação, indicando a razão legal e a autoridade classificadora, além de informar sobre o direito de recurso.' },
+    { id:'lai-7', topic:'LAI', front:'O que é transparência ativa x transparência passiva na LAI?', back:'Ativa: divulgação espontânea de informações pelo órgão (ex: portal de transparência), independente de solicitação. Passiva: resposta a pedidos específicos feitos por qualquer cidadão.' },
+    { id:'lai-8', topic:'LAI', front:'É necessário justificar o motivo do pedido de acesso à informação?', back:'Não. A LAI veda exigências como motivo do pedido, sendo exigida apenas a identificação do requerente e a especificação da informação.' },
+
+    // ===================== Marco Civil da Internet =====================
+    { id:'mci-1', topic:'Marco Civil da Internet', front:'O que é o Marco Civil da Internet e qual sua lei?', back:'Lei nº 12.965/2014 — estabelece princípios, garantias, direitos e deveres para o uso da internet no Brasil.' },
+    { id:'mci-2', topic:'Marco Civil da Internet', front:'Quais os fundamentos do Marco Civil da Internet?', back:'Respeito à liberdade de expressão, direitos humanos, valores sociais, pluralismo, livre iniciativa, livre concorrência, defesa do consumidor e finalidade social da rede.' },
+    { id:'mci-3', topic:'Marco Civil da Internet', front:'O que é neutralidade de rede no Marco Civil?', back:'O responsável pela transmissão, comutação ou roteamento tem o dever de tratar de forma isonômica quaisquer pacotes de dados, sem distinção por conteúdo, origem, destino, serviço, terminal ou aplicação.' },
+    { id:'mci-4', topic:'Marco Civil da Internet', front:'Qual o prazo de guarda de registros de conexão pelos provedores de conexão?', back:'1 (um) ano, em ambiente controlado e de segurança.' },
+    { id:'mci-5', topic:'Marco Civil da Internet', front:'Qual o prazo de guarda de registros de acesso a aplicações de internet?', back:'6 (seis) meses, sob sigilo, respeitada a proteção de dados pessoais e comunicações privadas.' },
+    { id:'mci-6', topic:'Marco Civil da Internet', front:'O Marco Civil responsabiliza o provedor de aplicações por conteúdo gerado por terceiros em qual regra geral?', back:'Regra geral: o provedor só é responsabilizado civilmente se, após ordem judicial específica, não tomar providências para tornar indisponível o conteúdo apontado como infringente.' },
+    { id:'mci-7', topic:'Marco Civil da Internet', front:'É permitida a guarda de registros de acesso a aplicações por provedores de conexão?', back:'Não. Ao provedor de conexão é vedado guardar os registros de acesso a aplicações de internet.' },
+
+    // ===================== LGPD =====================
+    { id:'lgpd-1', topic:'LGPD', front:'O que é a LGPD e qual sua lei?', back:'Lei Geral de Proteção de Dados Pessoais — Lei nº 13.709/2018. Regula o tratamento de dados pessoais, inclusive nos meios digitais, por pessoa física ou jurídica de direito público ou privado.' },
+    { id:'lgpd-2', topic:'LGPD', front:'Quais são os agentes de tratamento de dados previstos na LGPD?', back:'Controlador (decide sobre o tratamento) e Operador (realiza o tratamento em nome do controlador). Há também o Encarregado (DPO), canal de comunicação entre titulares, ANPD e a organização.' },
+    { id:'lgpd-3', topic:'LGPD', front:'Quais as bases legais mais cobradas para tratamento de dados na LGPD?', back:'Consentimento, cumprimento de obrigação legal/regulatória, execução de contrato, exercício regular de direitos, proteção da vida, tutela da saúde, legítimo interesse e execução de políticas públicas.' },
+    { id:'lgpd-4', topic:'LGPD', front:'Quais são os direitos do titular dos dados na LGPD?', back:'Confirmação de tratamento, acesso, correção, anonimização/bloqueio/eliminação de dados desnecessários, portabilidade, eliminação, informação sobre compartilhamento, revogação do consentimento, entre outros.' },
+    { id:'lgpd-5', topic:'LGPD', front:'O que são dados pessoais sensíveis na LGPD?', back:'Dados sobre origem racial/étnica, convicção religiosa, opinião política, filiação sindical/organização religiosa/filosófica/política, dado referente à saúde/vida sexual, genético ou biométrico.' },
+    { id:'lgpd-6', topic:'LGPD', front:'O que é a ANPD?', back:'Autoridade Nacional de Proteção de Dados — órgão responsável por fiscalizar e aplicar a LGPD no Brasil, além de editar normas complementares.' },
+    { id:'lgpd-7', topic:'LGPD', front:'O que caracteriza "anonimização" para a LGPD?', back:'Utilização de meios técnicos razoáveis e disponíveis no momento do tratamento, pelos quais um dado perde a possibilidade de associação a um indivíduo, direta ou indiretamente. Dado anonimizado não é considerado dado pessoal (salvo reversão).' },
+    { id:'lgpd-8', topic:'LGPD', front:'Quais os princípios que regem as atividades de tratamento de dados pessoais na LGPD?', back:'Finalidade, adequação, necessidade, livre acesso, qualidade dos dados, transparência, segurança, prevenção, não discriminação e responsabilização/prestação de contas.' },
+    { id:'lgpd-9', topic:'LGPD', front:'Quem pode ser considerado Encarregado (DPO) na LGPD?', back:'Pessoa indicada pelo controlador para atuar como canal de comunicação entre o controlador, os titulares dos dados e a ANPD.' },
+
+    // ===================== Lei Carolina Dieckmann =====================
+    { id:'lcd-1', topic:'Lei Carolina Dieckmann', front:'O que é a "Lei Carolina Dieckmann" e qual sua lei?', back:'Lei nº 12.737/2012 — tipifica crimes informáticos, alterando o Código Penal. Batizada após vazamento de fotos íntimas da atriz.' },
+    { id:'lcd-2', topic:'Lei Carolina Dieckmann', front:'Qual crime foi criado pelo art. 154-A do Código Penal (Lei 12.737/2012)?', back:'Invasão de dispositivo informático: invadir dispositivo alheio, conectado ou não à rede, mediante violação indevida de mecanismo de segurança, para obter, adulterar ou destruir dados/informações, ou instalar vulnerabilidades.' },
+    { id:'lcd-3', topic:'Lei Carolina Dieckmann', front:'Qual a pena básica prevista para invasão de dispositivo informático (art. 154-A, CP)?', back:'Detenção de 3 meses a 1 ano, e multa.' },
+    { id:'lcd-4', topic:'Lei Carolina Dieckmann', front:'Quando a pena de invasão de dispositivo informático é aumentada?', back:'Se da invasão resulta prejuízo econômico, ou se há obtenção de conteúdo de comunicações eletrônicas privadas, segredos comerciais/industriais ou informações sigilosas, ou controle remoto não autorizado do dispositivo.' },
+    { id:'lcd-5', topic:'Lei Carolina Dieckmann', front:'A Lei 12.737/2012 alterou também os artigos sobre quais outros crimes no Código Penal?', back:'Interrupção ou perturbação de serviço telegráfico, telefônico, informático, telemático ou de informação de utilidade pública (art. 266) e falsificação de cartão de crédito/débito (art. 298, parágrafo único).' },
+
+    // ===================== IN SGD 1/2019 =====================
+    { id:'in1-1', topic:'IN SGD 1/2019', front:'O que regulamentava a IN SGD/ME nº 1/2019?', back:'O processo de contratação de soluções de Tecnologia da Informação e Comunicação (TIC) pelos órgãos/entidades integrantes do SISP — revogou e substituiu a IN SLTI/MP nº 04/2014.' },
+    { id:'in1-2', topic:'IN SGD 1/2019', front:'Quais as três fases do processo de contratação de TIC estruturadas pela IN 1/2019?', back:'Planejamento da Contratação, Seleção do Fornecedor e Gestão do Contrato.' },
+    { id:'in1-3', topic:'IN SGD 1/2019', front:'Qual documento iniciava o Planejamento da Contratação na IN 1/2019?', back:'O DOD — Documento de Oficialização da Demanda (posteriormente renomeado para DFD na norma que a sucedeu).' },
+    { id:'in1-4', topic:'IN SGD 1/2019', front:'A IN SGD/ME nº 1/2019 ainda está em vigor?', back:'Não. Foi revogada e substituída pela IN SGD/ME nº 94/2022, que manteve a mesma estrutura de fases mas atualizou artefatos e terminologia (ex: DOD → DFD).' },
+    { id:'in1-5', topic:'IN SGD 1/2019', front:'Quais documentos estratégicos a contratação deveria observar segundo a IN 1/2019 (art. 6º)?', back:'PDTIC (Plano Diretor de TIC), PAC (Plano Anual de Contratações) e a Política de Governança Digital do órgão.' },
+
+    // ===================== IN SGD 94/2022 =====================
+    { id:'in94-1', topic:'IN SGD 94/2022', front:'O que dispõe a IN SGD/ME nº 94/2022?', back:'Dispõe sobre o processo de contratação de soluções de TIC pelos órgãos/entidades do SISP do Poder Executivo Federal — é a norma atualmente em vigor, sucessora direta da IN 1/2019.' },
+    { id:'in94-2', topic:'IN SGD 94/2022', front:'Quais os três processos do macroprocesso de contratação de TIC na IN 94/2022?', back:'1) Planejamento da Contratação; 2) Seleção do Fornecedor; 3) Gestão e Fiscalização do Contrato.' },
+    { id:'in94-3', topic:'IN SGD 94/2022', front:'O que é o DFD na IN 94/2022?', back:'Documento de Formalização da Demanda — inicia o Planejamento da Contratação, detalhando a necessidade da Área Requisitante (substituiu o antigo DOD da IN 1/2019).' },
+    { id:'in94-4', topic:'IN SGD 94/2022', front:'Quais são os principais artefatos do Planejamento da Contratação de TIC?', back:'DFD (Documento de Formalização da Demanda), ETP (Estudo Técnico Preliminar), Mapa de Riscos e TR (Termo de Referência).' },
+    { id:'in94-5', topic:'IN SGD 94/2022', front:'A quem se aplica a IN SGD/ME nº 94/2022?', back:'Aos órgãos e entidades integrantes do SISP (Sistema de Administração dos Recursos de Tecnologia da Informação) do Poder Executivo Federal.' },
+    { id:'in94-6', topic:'IN SGD 94/2022', front:'O que é "solução de TIC" segundo a IN 94/2022?', back:'Conjunto de bens e/ou serviços que apoiam processos de negócio mediante a conjugação de recursos de TIC, conforme premissas do Anexo II da própria IN.' },
+    { id:'in94-7', topic:'IN SGD 94/2022', front:'A Equipe de Planejamento da Contratação prevista na IN 94/2022 é composta por quais integrantes?', back:'Integrante Técnico (representante da Área de TIC), Integrante Requisitante (representante da Área Requisitante) e Integrante Administrativo (representante da Área Administrativa).' },
+
+    // ===================== IN SGD 6/2023 =====================
+    { id:'in6-1', topic:'IN SGD 6/2023', front:'O que regulamenta a IN SGD/MGI nº 6/2023?', back:'Regulamenta requisitos e procedimentos para aprovação, pela SGD, de contratações ou formação de atas de registro de preços de bens e serviços de TIC no âmbito do SISP.' },
+    { id:'in6-2', topic:'IN SGD 6/2023', front:'A partir de qual valor uma contratação de TIC do SISP precisa de aprovação prévia da SGD, segundo a IN 6/2023?', back:'Valor global estimado igual ou superior a R$ 20 milhões (ou em casos de formação de ata de registro de preços passível de adesão por órgãos não participantes).' },
+    { id:'in6-3', topic:'IN SGD 6/2023', front:'A IN SGD/MGI nº 6/2023 regulamenta qual dispositivo do Decreto nº 7.579/2011?', back:'O art. 9º-A do Decreto nº 7.579/2011, que trata da aprovação prévia de contratações de TIC pelo Órgão Central do SISP.' },
+    { id:'in6-4', topic:'IN SGD 6/2023', front:'Qual o órgão responsável por analisar e aprovar as contratações de grande vulto submetidas pela IN 6/2023?', back:'A Secretaria de Governo Digital (SGD) do Ministério da Gestão e da Inovação em Serviços Públicos (MGI).' },
+
+    // ===================== Portas TCP/UDP =====================
+    { id:'porta-1', topic:'Portas TCP/UDP', front:'Quais as portas padrão do FTP e o protocolo usado?', back:'TCP 20 (dados) e TCP 21 (controle).' },
+    { id:'porta-2', topic:'Portas TCP/UDP', front:'Qual a porta padrão do SSH e o protocolo?', back:'TCP 22.' },
+    { id:'porta-3', topic:'Portas TCP/UDP', front:'Qual a porta padrão do Telnet e o protocolo?', back:'TCP 23.' },
+    { id:'porta-4', topic:'Portas TCP/UDP', front:'Qual a porta padrão do SMTP e o protocolo?', back:'TCP 25 (envio de e-mail); versões seguras usam 465 ou 587.' },
+    { id:'porta-5', topic:'Portas TCP/UDP', front:'Qual a porta padrão do DNS e o protocolo?', back:'UDP/TCP 53 (UDP para consultas comuns, TCP para transferências de zona ou respostas grandes).' },
+    { id:'porta-6', topic:'Portas TCP/UDP', front:'Quais as portas padrão do DHCP e o protocolo?', back:'UDP 67 (servidor) e UDP 68 (cliente).' },
+    { id:'porta-7', topic:'Portas TCP/UDP', front:'Qual a porta padrão do HTTP e o protocolo?', back:'TCP 80.' },
+    { id:'porta-8', topic:'Portas TCP/UDP', front:'Qual a porta padrão do POP3 e o protocolo?', back:'TCP 110; versão segura (POP3S) usa TCP 995.' },
+    { id:'porta-9', topic:'Portas TCP/UDP', front:'Qual a porta padrão do NTP e o protocolo?', back:'UDP 123 — sincronização de horário.' },
+    { id:'porta-10', topic:'Portas TCP/UDP', front:'Qual a porta padrão do IMAP e o protocolo?', back:'TCP 143; versão segura (IMAPS) usa TCP 993.' },
+    { id:'porta-11', topic:'Portas TCP/UDP', front:'Quais as portas padrão do SNMP e o protocolo?', back:'UDP 161 (consultas) e UDP 162 (traps/notificações).' },
+    { id:'porta-12', topic:'Portas TCP/UDP', front:'Qual a porta padrão do LDAP e o protocolo?', back:'TCP 389; versão segura (LDAPS) usa TCP 636.' },
+    { id:'porta-13', topic:'Portas TCP/UDP', front:'Qual a porta padrão do HTTPS e o protocolo?', back:'TCP 443.' },
+    { id:'porta-14', topic:'Portas TCP/UDP', front:'Qual a porta padrão do SMB (compartilhamento de arquivos Windows) e o protocolo?', back:'TCP 445.' },
+    { id:'porta-15', topic:'Portas TCP/UDP', front:'Qual a porta padrão do RDP e o protocolo?', back:'TCP 3389 — acesso remoto a área de trabalho do Windows.' },
+    { id:'porta-16', topic:'Portas TCP/UDP', front:'Quais as portas padrão de MySQL e PostgreSQL?', back:'MySQL: TCP 3306. PostgreSQL: TCP 5432.' },
+
+    // ===================== ISO/IEC 20000 =====================
+    { id:'iso20k-1', topic:'ISO/IEC 20000', front:'O que é a ISO/IEC 20000?', back:'Norma internacional de gestão de serviços de TI (SGS — Sistema de Gerenciamento de Serviços), que especifica requisitos para planejar, estabelecer, implementar, operar, monitorar, revisar, manter e melhorar um SGS.' },
+    { id:'iso20k-2', topic:'ISO/IEC 20000', front:'Qual a diferença entre as Partes 1 e 2 da ISO/IEC 20000?', back:'Parte 1: requisitos (certificável) para o Sistema de Gerenciamento de Serviços. Parte 2: código de prática/orientação para implementação dos requisitos da Parte 1.' },
+    { id:'iso20k-3', topic:'ISO/IEC 20000', front:'Qual ciclo de melhoria contínua fundamenta a ISO/IEC 20000?', back:'O ciclo PDCA (Plan-Do-Check-Act — Planejar, Fazer, Checar, Agir), aplicado ao Sistema de Gerenciamento de Serviços.' },
+    { id:'iso20k-4', topic:'ISO/IEC 20000', front:'Uma organização pode ser certificada na ISO/IEC 20000?', back:'Sim, a certificação é feita com base nos requisitos da Parte 1 da norma, atestando que o SGS da organização atende ao padrão internacional.' },
+    { id:'iso20k-5', topic:'ISO/IEC 20000', front:'A ISO/IEC 20000 é focada em quê: processos ou produtos?', back:'Em processos de gestão de serviços de TI — é orientada a garantir a entrega de serviços com qualidade, de forma similar ao propósito do ITIL, mas como norma certificável.' },
+
+    // ===================== ISO/IEC 19770 =====================
+    { id:'iso1977-1', topic:'ISO/IEC 19770', front:'O que é a ISO/IEC 19770?', back:'Família de normas internacionais sobre Gerenciamento de Ativos de Software (SAM — Software Asset Management / ITAM).' },
+    { id:'iso1977-2', topic:'ISO/IEC 19770', front:'O que trata a ISO/IEC 19770-1?', back:'Especifica processos e uma abordagem em camadas (tiered approach) para implementação de um sistema de gerenciamento de ativos de software, permitindo maturidade crescente.' },
+    { id:'iso1977-3', topic:'ISO/IEC 19770', front:'Qual o objetivo prático do SAM (Software Asset Management) para uma organização?', back:'Controlar o ciclo de vida de licenças de software, reduzir riscos legais/financeiros (uso não licenciado), otimizar custos e apoiar decisões de compra e renovação.' },
+    { id:'iso1977-4', topic:'ISO/IEC 19770', front:'Qual parte da ISO/IEC 19770 trata de tag de identificação de software (SWID)?', back:'A ISO/IEC 19770-2, que define o formato de tags de identificação de software (Software Identification Tags).' },
+
+    // ===================== Lei das Estatais =====================
+    { id:'estatais-1', topic:'Lei das Estatais', front:'O que é a Lei das Estatais e qual sua lei?', back:'Lei nº 13.303/2016 — dispõe sobre o estatuto jurídico da empresa pública, da sociedade de economia mista e de suas subsidiárias, em qualquer esfera federativa.' },
+    { id:'estatais-2', topic:'Lei das Estatais', front:'Com base em qual dispositivo constitucional a Lei das Estatais foi editada?', back:'Art. 173, §1º, da Constituição Federal, que exige lei específica para o estatuto jurídico de empresas estatais exploradoras de atividade econômica.' },
+    { id:'estatais-3', topic:'Lei das Estatais', front:'Quais os principais temas disciplinados pela Lei 13.303/2016?', back:'Governança corporativa, função social da estatal, licitações e contratos próprios, estrutura administrativa (conselhos), responsabilização de gestores e transparência/controles internos.' },
+    { id:'estatais-4', topic:'Lei das Estatais', front:'A Lei das Estatais aplica subsidiariamente qual outra lei?', back:'A Lei das Sociedades por Ações (Lei nº 6.404/1976), no que for cabível.' },
+    { id:'estatais-5', topic:'Lei das Estatais', front:'Quais órgãos de governança as estatais devem ter, segundo a Lei 13.303/2016?', back:'Conselho de Administração, Diretoria e, quando exigido, Conselho Fiscal — com requisitos mínimos de qualificação e vedações para nomeação de dirigentes.' },
+    { id:'estatais-6', topic:'Lei das Estatais', front:'A Lei das Estatais possui regras próprias de licitação, diferentes da Lei 14.133/2021?', back:'Sim — a Lei 13.303/2016 traz regime próprio de licitações e contratos para empresas públicas e sociedades de economia mista, distinto (mas com princípios similares) do regime geral da Lei 14.133/2021.' },
+    { id:'estatais-7', topic:'Lei das Estatais', front:'Com que periodicidade a Lei das Estatais exige a divulgação de demonstrações contábeis?', back:'Trimestralmente, como parte dos mecanismos de transparência exigidos das empresas públicas e sociedades de economia mista.' },
+
+    // ===================== ITIL v4 Práticas =====================
+    { id:'itilprat-1', topic:'ITIL v4 Práticas', front:'O que substituiu os "processos" do ITIL v3 na estrutura do ITIL v4?', back:'As "Práticas" — conjuntos de recursos organizacionais criados para executar um trabalho ou atingir um objetivo, combinando pessoas, informação/tecnologia, parceiros/fornecedores e valor/processos.' },
+    { id:'itilprat-2', topic:'ITIL v4 Práticas', front:'Quantas práticas o ITIL v4 define e como são agrupadas?', back:'34 práticas, agrupadas em: Práticas de Gerenciamento Geral (14), Práticas de Gerenciamento de Serviço (17) e Práticas de Gerenciamento Técnico (3).' },
+    { id:'itilprat-3', topic:'ITIL v4 Práticas', front:'Cite exemplos de Práticas de Gerenciamento Geral no ITIL v4.', back:'Gerenciamento Estratégico, Gerenciamento de Riscos, Gerenciamento de Projetos, Gerenciamento Financeiro de Serviço, Gerenciamento de Fornecedores, Gerenciamento de Relacionamento.' },
+    { id:'itilprat-4', topic:'ITIL v4 Práticas', front:'Cite exemplos de Práticas de Gerenciamento de Serviço no ITIL v4.', back:'Gerenciamento de Incidentes, Gerenciamento de Problemas, Central de Serviço (Service Desk), Gerenciamento de Nível de Serviço, Gerenciamento de Mudança, Gerenciamento de Catálogo de Serviço.' },
+    { id:'itilprat-5', topic:'ITIL v4 Práticas', front:'Quais são as 3 Práticas de Gerenciamento Técnico no ITIL v4?', back:'Gerenciamento de Implantação (Deployment), Gerenciamento de Infraestrutura e Plataforma, e Desenvolvimento e Gerenciamento de Software.' },
+    { id:'itilprat-6', topic:'ITIL v4 Práticas', front:'Qual a diferença entre Gerenciamento de Incidentes e Gerenciamento de Problemas no ITIL v4?', back:'Incidente: restaurar a operação normal do serviço o mais rápido possível após uma interrupção. Problema: identificar e eliminar a causa raiz de um ou mais incidentes, prevenindo recorrência.' },
+    { id:'itilprat-7', topic:'ITIL v4 Práticas', front:'O que é a prática de Gerenciamento de Nível de Serviço (SLM) no ITIL v4?', back:'Definir metas claras de nível de serviço com base nos objetivos de negócio, e garantir que o desempenho seja medido e gerenciado em relação a essas metas (SLAs).' },
+    { id:'itilprat-8', topic:'ITIL v4 Práticas', front:'O que é a prática de Central de Serviço (Service Desk) no ITIL v4?', back:'Ponto único de contato entre o provedor de serviço e os usuários, para capturar demanda por resolução de incidentes e requisições de serviço.' },
+
+    // ===================== ITIL v4 SVS, Cadeia de Valor =====================
+    { id:'svs-1', topic:'ITIL v4 SVS e Cadeia de Valor', front:'O que é o SVS no ITIL v4?', back:'Sistema de Valor de Serviço (Service Value System) — descreve como todos os componentes e atividades de uma organização trabalham juntos para facilitar a criação de valor.' },
+    { id:'svs-2', topic:'ITIL v4 SVS e Cadeia de Valor', front:'Quais são os componentes do SVS no ITIL v4?', back:'Princípios Orientadores, Governança, Cadeia de Valor de Serviço, Práticas e Melhoria Contínua.' },
+    { id:'svs-3', topic:'ITIL v4 SVS e Cadeia de Valor', front:'Quantos e quais são os Princípios Orientadores do ITIL v4?', back:'7: Foco no valor; Comece de onde você está; Progrida iterativamente com feedback; Colabore e promova visibilidade; Pense e trabalhe holisticamente; Mantenha simples e prático; Otimize e automatize.' },
+    { id:'svs-4', topic:'ITIL v4 SVS e Cadeia de Valor', front:'O que é a Cadeia de Valor de Serviço (Service Value Chain) no ITIL v4?', back:'Um modelo operacional que descreve as atividades-chave necessárias para responder à demanda e facilitar a criação de valor através da geração e gerenciamento de produtos e serviços.' },
+    { id:'svs-5', topic:'ITIL v4 SVS e Cadeia de Valor', front:'Quais são as 6 atividades da Cadeia de Valor de Serviço no ITIL v4?', back:'Plan (Planejar), Improve (Melhorar), Engage (Engajar), Design & Transition (Desenhar e Transicionar), Obtain/Build (Obter/Construir), Deliver & Support (Entregar e Suportar).' },
+    { id:'svs-6', topic:'ITIL v4 SVS e Cadeia de Valor', front:'O que faz a atividade "Engage" da Cadeia de Valor de Serviço?', back:'Fornece um bom entendimento das necessidades das partes interessadas, transparência e engajamento contínuo e bons relacionamentos com todas as partes interessadas.' },
+    { id:'svs-7', topic:'ITIL v4 SVS e Cadeia de Valor', front:'Quais são as 4 dimensões da gestão de serviços no ITIL v4?', back:'Organizações e Pessoas; Informação e Tecnologia; Parceiros e Fornecedores; Fluxos de Valor e Processos.' },
+    { id:'svs-8', topic:'ITIL v4 SVS e Cadeia de Valor', front:'O que significa "valor" no ITIL v4?', back:'Os benefícios percebidos, a utilidade e a importância de algo — a percepção de valor é influenciada pelas preferências e experiências dos stakeholders.' },
+    { id:'svs-9', topic:'ITIL v4 SVS e Cadeia de Valor', front:'Qual a diferença entre "utilidade" (utility) e "garantia" (warranty) no ITIL v4?', back:'Utilidade: funcionalidade oferecida por um produto/serviço para atender a uma necessidade específica ("o que o serviço faz"). Garantia: garante que um produto/serviço atenderá aos requisitos acordados ("como o serviço desempenha" — disponibilidade, capacidade, segurança, continuidade).' },
+
+    // ===================== ITIL (Geral) =====================
+    { id:'itilger-1', topic:'ITIL (Geral)', front:'O que significa ITIL?', back:'Information Technology Infrastructure Library — um framework de boas práticas para gerenciamento de serviços de TI, atualmente mantido pela AXELOS/PeopleCert.' },
+    { id:'itilger-2', topic:'ITIL (Geral)', front:'Qual a principal diferença estrutural entre ITIL v3 e ITIL v4?', back:'ITIL v3 era organizado em 5 estágios de ciclo de vida do serviço com "processos"; ITIL v4 adota o Sistema de Valor de Serviço (SVS) com "práticas" e 4 dimensões, mais flexível e alinhado a Agile/DevOps.' },
+    { id:'itilger-3', topic:'ITIL (Geral)', front:'O ITIL é uma norma certificável como a ISO/IEC 20000?', back:'Não. ITIL é um framework de boas práticas (guia); ISO/IEC 20000 é uma norma internacional certificável. Organizações podem usar o ITIL como referência para atender aos requisitos da ISO/IEC 20000.' },
+
+    // ===================== COBIT 2019 Domínios EDM/APO =====================
+    { id:'cobitdom-1', topic:'COBIT 2019 EDM/APO', front:'O que significa EDM no COBIT 2019 e quantos objetivos possui?', back:'Evaluate, Direct and Monitor (Avaliar, Dirigir e Monitorar) — domínio de Governança, com 5 objetivos (EDM01 a EDM05), de responsabilidade do órgão de governança.' },
+    { id:'cobitdom-2', topic:'COBIT 2019 EDM/APO', front:'O que significa APO no COBIT 2019 e quantos objetivos possui?', back:'Align, Plan and Organize (Alinhar, Planejar e Organizar) — domínio de Gestão, com 14 objetivos (APO01 a APO14).' },
+    { id:'cobitdom-3', topic:'COBIT 2019 EDM/APO', front:'Quais são os 5 objetivos de governança do domínio EDM no COBIT 2019?', back:'EDM01 Garantir estabelecimento e manutenção do framework de governança; EDM02 Garantir entrega de benefícios; EDM03 Garantir otimização de riscos; EDM04 Garantir otimização de recursos; EDM05 Garantir engajamento das partes interessadas.' },
+    { id:'cobitdom-4', topic:'COBIT 2019 EDM/APO', front:'Qual a diferença entre Governança e Gestão no COBIT 2019?', back:'Governança (EDM): avalia necessidades, condições e opções das partes interessadas, define direção via priorização/decisão e monitora desempenho/conformidade — papel do conselho/alta administração. Gestão (APO, BAI, DSS, MEA): planeja, constrói, executa e monitora atividades alinhadas à direção definida pela governança — papel da administração executiva.' },
+    { id:'cobitdom-5', topic:'COBIT 2019 EDM/APO', front:'O que trata o objetivo APO12 do COBIT 2019?', back:'Managed Risk (Gerenciar Riscos) — identifica, avalia e reduz riscos relacionados a TI continuamente, dentro de níveis de tolerância definidos pela alta direção.' },
+    { id:'cobitdom-6', topic:'COBIT 2019 EDM/APO', front:'O que trata o objetivo APO13 do COBIT 2019?', back:'Managed Security (Gerenciar Segurança) — define, opera e monitora um sistema de gestão de segurança da informação.' },
+    { id:'cobitdom-7', topic:'COBIT 2019 EDM/APO', front:'Além de EDM e APO, quais são os outros domínios de Gestão do COBIT 2019?', back:'BAI (Build, Acquire and Implement — 11 objetivos), DSS (Deliver, Service and Support — 6 objetivos) e MEA (Monitor, Evaluate and Assess — 4 objetivos).' },
+    { id:'cobitdom-8', topic:'COBIT 2019 EDM/APO', front:'Quantos objetivos de governança e gestão o COBIT 2019 possui no total?', back:'40 objetivos: 5 de governança (EDM) + 35 de gestão (14 APO + 11 BAI + 6 DSS + 4 MEA).' },
+
+    // ===================== COBIT 2019 Fatores de Design =====================
+    { id:'cobitfd-1', topic:'COBIT 2019 Fatores de Design', front:'O que são os "Fatores de Design" no COBIT 2019?', back:'Elementos que influenciam a customização do sistema de governança de I&T de uma organização, ajudando a priorizar quais objetivos de governança/gestão merecem mais foco.' },
+    { id:'cobitfd-2', topic:'COBIT 2019 Fatores de Design', front:'Quantos Fatores de Design existem no COBIT 2019?', back:'11 fatores de design.' },
+    { id:'cobitfd-3', topic:'COBIT 2019 Fatores de Design', front:'Cite os 11 Fatores de Design do COBIT 2019.', back:'1) Estratégia empresarial; 2) Metas empresariais; 3) Perfil de risco; 4) Questões relacionadas a I&T; 5) Panorama de ameaças; 6) Requisitos de conformidade; 7) Papel de TI; 8) Modelo de sourcing de TI; 9) Métodos de implementação de TI; 10) Estratégia de adoção tecnológica; 11) Tamanho da empresa.' },
+    { id:'cobitfd-4', topic:'COBIT 2019 Fatores de Design', front:'O que avalia o fator de design "Perfil de Risco" no COBIT 2019?', back:'Identifica os riscos relacionados a I&T aos quais a empresa está exposta atualmente, e quais riscos ela pode assumir, priorizando objetivos de governança relacionados à gestão desses riscos.' },
+    { id:'cobitfd-5', topic:'COBIT 2019 Fatores de Design', front:'O que avalia o fator de design "Modelo de Sourcing de TI" no COBIT 2019?', back:'Como a organização adquire e opera os serviços de I&T — outsourcing, insourcing, híbrido ou cloud — influenciando quais processos de governança precisam de mais atenção.' },
+    { id:'cobitfd-6', topic:'COBIT 2019 Fatores de Design', front:'O que avalia o fator de design "Panorama de Ameaças" no COBIT 2019?', back:'O nível de ameaça (normal ou elevado) ao qual a empresa está exposta, com base no seu ambiente e setor de atuação.' },
+    { id:'cobitfd-7', topic:'COBIT 2019 Fatores de Design', front:'O que avalia o fator de design "Requisitos de Conformidade" no COBIT 2019?', back:'O nível de exigência regulatória a que a empresa está sujeita — alto, normal ou baixo — influenciando o rigor dos objetivos de governança priorizados.' },
+    { id:'cobitfd-8', topic:'COBIT 2019 Fatores de Design', front:'O que avalia o fator de design "Papel de TI" no COBIT 2019?', back:'Qual o papel estratégico da TI para a empresa: suporte, fábrica, transformação (turnaround) ou estratégico — influenciando a priorização de objetivos.' },
+    { id:'cobitfd-9', topic:'COBIT 2019 Fatores de Design', front:'O que é o "Tamanho da Empresa" como fator de design no COBIT 2019?', back:'Considera se a empresa é padrão ou pequena/média (PME), o que pode reduzir/simplificar o conjunto de objetivos de governança/gestão relevantes.' },
+
+    // ===================== COBIT (Geral) =====================
+    { id:'cobitger-1', topic:'COBIT (Geral)', front:'O que significa COBIT?', back:'Control Objectives for Information and Related Technologies — framework de governança e gestão de TI corporativa mantido pela ISACA.' },
+    { id:'cobitger-2', topic:'COBIT (Geral)', front:'Qual a principal diferença de foco entre COBIT e ITIL?', back:'COBIT é focado em Governança de TI Corporativa (o quê e por quê, avaliação/direção/monitoramento no nível executivo); ITIL é focado em Gestão de Serviços de TI (como executar operacionalmente).' },
+    { id:'cobitger-3', topic:'COBIT (Geral)', front:'Quais são os 6 princípios de um sistema de governança no COBIT 2019?', back:'1) Prover valor às partes interessadas; 2) Abordagem holística; 3) Sistema de governança dinâmico; 4) Governança distinta da gestão; 5) Adaptado às necessidades da empresa; 6) Sistema de governança fim a fim (end-to-end).' },
+
+    // ===================== Mensageria =====================
+    { id:'msg-1', topic:'Mensageria', front:'O que é MOM (Message-Oriented Middleware)?', back:'Middleware orientado a mensagens — infraestrutura de software que permite comunicação assíncrona entre aplicações distribuídas através da troca de mensagens.' },
+    { id:'msg-2', topic:'Mensageria', front:'Qual a diferença entre o modelo Ponto-a-Ponto (Point-to-Point) e Publish/Subscribe em mensageria?', back:'Ponto-a-Ponto: mensagem enviada a uma fila é consumida por apenas um consumidor. Publish/Subscribe: mensagem publicada em um tópico é entregue a todos os assinantes (subscribers) daquele tópico.' },
+    { id:'msg-3', topic:'Mensageria', front:'O que é um "broker" de mensagens?', back:'Componente intermediário responsável por rotear, armazenar temporariamente e entregar mensagens entre produtores e consumidores, desacoplando os sistemas.' },
+    { id:'msg-4', topic:'Mensageria', front:'O que é AMQP?', back:'Advanced Message Queuing Protocol — protocolo aberto padronizado para troca de mensagens entre sistemas, independente de fornecedor (usado por ex. pelo RabbitMQ).' },
+    { id:'msg-5', topic:'Mensageria', front:'O que é JMS?', back:'Java Message Service — API padrão Java para envio e recebimento de mensagens entre aplicações, suportando os modelos ponto-a-ponto e publish/subscribe.' },
+    { id:'msg-6', topic:'Mensageria', front:'Qual a principal vantagem da comunicação assíncrona via mensageria em relação à síncrona?', back:'Desacoplamento entre produtor e consumidor (não precisam estar disponíveis ao mesmo tempo), maior resiliência a falhas e melhor escalabilidade.' },
+    { id:'msg-7', topic:'Mensageria', front:'O que é o Apache Kafka, em linhas gerais?', back:'Plataforma de streaming de eventos distribuída, de alta performance, baseada no modelo publish/subscribe com armazenamento durável de mensagens em "tópicos" particionados.' },
+
+    // ===================== Computação em Grid =====================
+    { id:'grid-1', topic:'Computação em Grid', front:'O que é Computação em Grid?', back:'Modelo de computação distribuída que agrega recursos heterogêneos e geograficamente dispersos (de diferentes organizações) para trabalhar de forma coordenada na resolução de tarefas complexas.' },
+    { id:'grid-2', topic:'Computação em Grid', front:'Qual a diferença entre Grid Computing e Cluster Computing?', back:'Cluster: recursos homogêneos, próximos fisicamente, gerenciados centralizadamente por uma única administração. Grid: recursos heterogêneos, dispersos geograficamente, com administração descentralizada entre múltiplas organizações.' },
+    { id:'grid-3', topic:'Computação em Grid', front:'Qual a diferença entre Grid Computing e Cloud Computing?', back:'Grid foca em compartilhar recursos computacionais ociosos entre organizações para processamento colaborativo (geralmente científico); Cloud foca em fornecer recursos sob demanda, virtualizados, via modelo de serviço (self-service, elasticidade, cobrança por uso).' },
+    { id:'grid-4', topic:'Computação em Grid', front:'Que tipo de aplicação costuma se beneficiar de Computação em Grid?', back:'Aplicações que exigem grande poder de processamento paralelo, como simulações científicas, pesquisa genômica, análise de big data e renderização.' },
+    { id:'grid-5', topic:'Computação em Grid', front:'O que caracteriza o acoplamento dos recursos em um Grid?', back:'Acoplamento fraco (loosely coupled) — os nós do grid não dependem de comunicação constante e podem entrar/sair do grid dinamicamente.' },
+
+    // ===================== Servidores de Aplicação =====================
+    { id:'srvapp-1', topic:'Servidores de Aplicação', front:'O que é o IIS?', back:'Internet Information Services — servidor web/de aplicação da Microsoft, integrado ao Windows Server, usado para hospedar aplicações .NET, ASP.NET e sites.' },
+    { id:'srvapp-2', topic:'Servidores de Aplicação', front:'O que é o Apache HTTP Server?', back:'Servidor web open-source multiplataforma, um dos mais usados no mundo, extensível via módulos (ex: mod_php, mod_ssl), com arquitetura tradicionalmente baseada em processos/threads.' },
+    { id:'srvapp-3', topic:'Servidores de Aplicação', front:'O que é o Apache Tomcat?', back:'Contêiner web (servlet container) open-source da Apache Software Foundation, que implementa as especificações Java Servlet, JSP e WebSocket — usado para rodar aplicações Java.' },
+    { id:'srvapp-4', topic:'Servidores de Aplicação', front:'Qual a porta padrão do Apache Tomcat?', back:'TCP 8080 (porta HTTP padrão do Tomcat, distinta da porta 80 usada por outros servidores web).' },
+    { id:'srvapp-5', topic:'Servidores de Aplicação', front:'Qual a diferença conceitual entre um Servidor Web e um Servidor de Aplicação?', back:'Servidor Web serve conteúdo estático (HTML, CSS, imagens) e responde a requisições HTTP simples. Servidor de Aplicação executa lógica de negócio e conteúdo dinâmico (ex: Java EE, .NET), podendo incluir um servidor web embutido.' },
+
+    // ===================== Nginx =====================
+    { id:'nginx-1', topic:'Nginx', front:'O que é o Nginx e para que é mais usado?', back:'Servidor web/proxy reverso de alta performance, muito usado como balanceador de carga, cache e proxy reverso na frente de aplicações e outros servidores (como o Apache).' },
+    { id:'nginx-2', topic:'Nginx', front:'Qual a principal diferença arquitetural do Nginx em relação ao Apache tradicional?', back:'Nginx usa arquitetura orientada a eventos (event-driven), assíncrona e não bloqueante, tratando muitas conexões simultâneas com poucos processos/threads — mais eficiente sob alta concorrência que o modelo tradicional de processo/thread por conexão do Apache.' },
+    { id:'nginx-3', topic:'Nginx', front:'O que é "proxy reverso" e por que o Nginx é usado para isso?', back:'Um proxy reverso recebe requisições dos clientes e as encaminha para um ou mais servidores de back-end, retornando a resposta como se fosse a origem — o Nginx é muito usado nesse papel por seu baixo consumo de recursos sob alta carga.' },
+    { id:'nginx-4', topic:'Nginx', front:'O Nginx pode atuar como balanceador de carga?', back:'Sim — distribui requisições entre múltiplos servidores back-end usando algoritmos como round-robin, least connections ou ip-hash.' },
+
+    // ===================== Object Storage / S3 =====================
+    { id:'s3-1', topic:'Object Storage / S3', front:'O que é armazenamento de objetos (object storage)?', back:'Modelo de armazenamento que trata dados como objetos independentes (dado + metadados + identificador único), organizados em um namespace plano (não hierárquico como um sistema de arquivos).' },
+    { id:'s3-2', topic:'Object Storage / S3', front:'O que é o Amazon S3?', back:'Simple Storage Service — serviço de armazenamento de objetos da AWS, organizado em "buckets" (contêineres) que armazenam "objetos", acessível via API REST/HTTP.' },
+    { id:'s3-3', topic:'Object Storage / S3', front:'Qual a diferença entre armazenamento em bloco (block storage), arquivo (file storage) e objeto (object storage)?', back:'Bloco: divide dados em blocos, usado por discos/SANs, alta performance para bancos de dados. Arquivo: organiza dados em hierarquia de pastas (NAS). Objeto: dados como unidades planas com metadados ricos, altamente escalável, ideal para dados não estruturados.' },
+    { id:'s3-4', topic:'Object Storage / S3', front:'O que é "versionamento" no Amazon S3?', back:'Recurso que mantém múltiplas variantes de um objeto no mesmo bucket, preservando, recuperando e restaurando versões anteriores em caso de exclusão ou sobrescrita acidental.' },
+    { id:'s3-5', topic:'Object Storage / S3', front:'Cite exemplos de casos de uso ideais para object storage.', back:'Backups, arquivamento, hospedagem de mídia (imagens/vídeos), data lakes e armazenamento de grandes volumes de dados não estruturados com acesso via API.' },
+
+    // ===================== Infra Avançada =====================
+    { id:'infra-1', topic:'Infra Avançada', front:'O que é virtualização de servidores?', back:'Tecnologia que permite executar múltiplas máquinas virtuais (VMs) isoladas sobre um único hardware físico, através de um hypervisor, otimizando uso de recursos.' },
+    { id:'infra-2', topic:'Infra Avançada', front:'Qual a diferença entre hypervisor Tipo 1 e Tipo 2?', back:'Tipo 1 (bare-metal): roda diretamente sobre o hardware, sem sistema operacional hospedeiro (ex: VMware ESXi, Hyper-V). Tipo 2 (hosted): roda sobre um sistema operacional hospedeiro (ex: VirtualBox, VMware Workstation).' },
+    { id:'infra-3', topic:'Infra Avançada', front:'Qual a diferença entre Alta Disponibilidade (HA) e Balanceamento de Carga?', back:'HA garante que um serviço continue disponível mesmo diante de falhas (redundância, failover). Balanceamento de carga distribui requisições entre múltiplos recursos para otimizar desempenho — as duas técnicas costumam ser usadas em conjunto.' },
+    { id:'infra-4', topic:'Infra Avançada', front:'O que é contêinerização e qual sua diferença para VMs?', back:'Contêineres (ex: Docker) empacotam a aplicação e suas dependências compartilhando o kernel do sistema operacional hospedeiro, sendo mais leves e rápidos de iniciar que VMs, que virtualizam hardware completo incluindo SO próprio.' },
+    { id:'infra-5', topic:'Infra Avançada', front:'O que é RAID e para que serve?', back:'Redundant Array of Independent Disks — técnica que combina múltiplos discos físicos para aumentar desempenho e/ou redundância (tolerância a falhas) de armazenamento.' },
+    { id:'infra-6', topic:'Infra Avançada', front:'Qual a diferença entre backup completo (full), incremental e diferencial?', back:'Completo: copia todos os dados. Incremental: copia apenas o que mudou desde o último backup (completo ou incremental). Diferencial: copia tudo que mudou desde o último backup completo.' },
+
+    // ===================== Normas SGD =====================
+    { id:'sgd-1', topic:'Normas SGD', front:'O que é a SGD?', back:'Secretaria de Governo Digital, órgão do Ministério da Gestão e da Inovação em Serviços Públicos (MGI), responsável por normatizar e coordenar a governança digital e as contratações de TIC no Poder Executivo Federal.' },
+    { id:'sgd-2', topic:'Normas SGD', front:'O que é o SISP?', back:'Sistema de Administração dos Recursos de Tecnologia da Informação — sistema que integra os órgãos e entidades do Poder Executivo Federal responsáveis pela gestão de recursos de TIC, sob coordenação da SGD.' },
+    { id:'sgd-3', topic:'Normas SGD', front:'Qual a hierarquia típica entre Decreto e Instrução Normativa (IN) no contexto da SGD?', back:'O Decreto define diretrizes gerais (ex: Decreto nº 7.579/2011, que institui o SISP); a Instrução Normativa (editada pela SGD) detalha e regulamenta operacionalmente como cumprir essas diretrizes (ex: IN 94/2022 detalha o processo de contratação de TIC).' },
+
+    // ===================== Lógica Proposicional =====================
+    { id:'logica-1', topic:'Lógica Proposicional', front:'O que é uma proposição lógica?', back:'Toda sentença declarativa que pode ser classificada, de forma unívoca, como Verdadeira (V) ou Falsa (F) — nunca ambas.' },
+    { id:'logica-2', topic:'Lógica Proposicional', front:'Quando o conectivo "E" (conjunção, ∧) resulta em Verdadeiro?', back:'Somente quando ambas as proposições são verdadeiras (V∧V=V). Em qualquer outro caso, o resultado é Falso.' },
+    { id:'logica-3', topic:'Lógica Proposicional', front:'Quando o conectivo "OU" (disjunção inclusiva, ∨) resulta em Falso?', back:'Somente quando ambas as proposições são falsas (F∨F=F). Em qualquer outro caso, o resultado é Verdadeiro.' },
+    { id:'logica-4', topic:'Lógica Proposicional', front:'Quando o condicional "SE...ENTÃO" (→) é Falso?', back:'Apenas quando o antecedente é Verdadeiro e o consequente é Falso (V→F=F). Em todos os outros casos, o condicional é Verdadeiro.' },
+    { id:'logica-5', topic:'Lógica Proposicional', front:'Quando o bicondicional "SE E SOMENTE SE" (↔) é Verdadeiro?', back:'Quando as duas proposições têm o mesmo valor lógico — ambas verdadeiras ou ambas falsas.' },
+    { id:'logica-6', topic:'Lógica Proposicional', front:'O que é a negação de uma proposição?', back:'Inverte o valor lógico da proposição original: se P é Verdadeira, ¬P é Falsa, e vice-versa.' },
+    { id:'logica-7', topic:'Lógica Proposicional', front:'Como se nega uma disjunção "P ou Q"?', back:'A negação de "P ou Q" é "não P e não Q" (aplicação da Lei de De Morgan).' },
+    { id:'logica-8', topic:'Lógica Proposicional', front:'Como se nega uma proposição condicional "Se P, então Q"?', back:'A negação é "P e não Q" — o antecedente permanece verdadeiro e o consequente se torna falso.' },
+
+    // ===================== De Morgan e Contrapositiva =====================
+    { id:'demorgan-1', topic:'De Morgan e Contrapositiva', front:'Qual a primeira Lei de De Morgan?', back:'¬(P ∧ Q) ≡ (¬P ∨ ¬Q) — a negação de uma conjunção é a disjunção das negações.' },
+    { id:'demorgan-2', topic:'De Morgan e Contrapositiva', front:'Qual a segunda Lei de De Morgan?', back:'¬(P ∨ Q) ≡ (¬P ∧ ¬Q) — a negação de uma disjunção é a conjunção das negações.' },
+    { id:'demorgan-3', topic:'De Morgan e Contrapositiva', front:'O que é a contrapositiva de uma proposição condicional "Se P, então Q"?', back:'"Se não Q, então não P" (¬Q → ¬P) — é logicamente equivalente à proposição original.' },
+    { id:'demorgan-4', topic:'De Morgan e Contrapositiva', front:'A recíproca "Se Q, então P" é logicamente equivalente à condicional original "Se P, então Q"?', back:'Não. A recíproca NÃO é equivalente à condicional original — apenas a contrapositiva é equivalente.' },
+    { id:'demorgan-5', topic:'De Morgan e Contrapositiva', front:'Exemplo prático: qual a contrapositiva de "Se chove, então a rua fica molhada"?', back:'"Se a rua não fica molhada, então não chove."' },
+    { id:'demorgan-6', topic:'De Morgan e Contrapositiva', front:'Como aplicar De Morgan para negar "Ana estuda e Ana passa no concurso"?', back:'"Ana não estuda ou Ana não passa no concurso."' },
+
+    // ===================== SQL - DDL x DML =====================
+    { id:'sqlddl-1', topic:'SQL - DDL x DML', front:'O que é DDL em SQL e quais seus principais comandos?', back:'Data Definition Language — define/altera a estrutura do banco. Comandos: CREATE, ALTER, DROP, TRUNCATE.' },
+    { id:'sqlddl-2', topic:'SQL - DDL x DML', front:'O que é DML em SQL e quais seus principais comandos?', back:'Data Manipulation Language — manipula os dados armazenados. Comandos: SELECT, INSERT, UPDATE, DELETE.' },
+    { id:'sqlddl-3', topic:'SQL - DDL x DML', front:'Qual a diferença entre DELETE e TRUNCATE?', back:'DELETE (DML) remove linhas com base em condição, pode ser desfeito (ROLLBACK) e dispara triggers. TRUNCATE (DDL) remove todas as linhas da tabela de uma vez, geralmente não pode ser desfeito e é mais rápido.' },
+    { id:'sqlddl-4', topic:'SQL - DDL x DML', front:'O que é DCL em SQL e quais seus principais comandos?', back:'Data Control Language — controla permissões de acesso. Comandos: GRANT (concede) e REVOKE (revoga).' },
+    { id:'sqlddl-5', topic:'SQL - DDL x DML', front:'O que é TCL em SQL e quais seus principais comandos?', back:'Transaction Control Language — controla transações. Comandos: COMMIT (confirma), ROLLBACK (desfaz), SAVEPOINT (ponto de retorno).' },
+    { id:'sqlddl-6', topic:'SQL - DDL x DML', front:'O comando ALTER TABLE pertence a qual categoria da SQL?', back:'DDL — altera a estrutura de uma tabela já existente (adicionar/remover colunas, alterar tipos, etc).' },
+
+    // ===================== SQL - JOINs =====================
+    { id:'sqljoin-1', topic:'SQL - JOINs', front:'O que faz um INNER JOIN?', back:'Retorna apenas as linhas que possuem correspondência em ambas as tabelas envolvidas.' },
+    { id:'sqljoin-2', topic:'SQL - JOINs', front:'O que faz um LEFT JOIN (LEFT OUTER JOIN)?', back:'Retorna todas as linhas da tabela à esquerda, e as correspondentes da tabela à direita; quando não há correspondência, os campos da direita vêm como NULL.' },
+    { id:'sqljoin-3', topic:'SQL - JOINs', front:'O que faz um RIGHT JOIN (RIGHT OUTER JOIN)?', back:'Retorna todas as linhas da tabela à direita, e as correspondentes da tabela à esquerda; quando não há correspondência, os campos da esquerda vêm como NULL.' },
+    { id:'sqljoin-4', topic:'SQL - JOINs', front:'O que faz um FULL OUTER JOIN?', back:'Retorna todas as linhas de ambas as tabelas, combinando quando há correspondência e preenchendo com NULL onde não há.' },
+    { id:'sqljoin-5', topic:'SQL - JOINs', front:'O que é um CROSS JOIN?', back:'Retorna o produto cartesiano entre as duas tabelas — cada linha da primeira combinada com cada linha da segunda, sem condição de junção.' },
+    { id:'sqljoin-6', topic:'SQL - JOINs', front:'O que é um SELF JOIN?', back:'Uma junção de uma tabela com ela mesma, usando aliases diferentes — útil para comparar linhas da mesma tabela (ex: hierarquia de funcionários/gerentes).' },
+
+    // ===================== ACID =====================
+    { id:'acid-1', topic:'ACID', front:'O que significa ACID em banco de dados?', back:'Atomicidade, Consistência, Isolamento e Durabilidade — propriedades que garantem transações confiáveis.' },
+    { id:'acid-2', topic:'ACID', front:'O que garante a propriedade de Atomicidade?', back:'Uma transação é executada por completo (tudo) ou não é executada de forma alguma (nada) — não há estados intermediários persistidos.' },
+    { id:'acid-3', topic:'ACID', front:'O que garante a propriedade de Consistência?', back:'Uma transação leva o banco de dados de um estado válido para outro estado válido, respeitando todas as regras, restrições e integridade definidas.' },
+    { id:'acid-4', topic:'ACID', front:'O que garante a propriedade de Isolamento?', back:'Transações concorrentes não interferem entre si — o resultado final é o mesmo que se as transações fossem executadas sequencialmente.' },
+    { id:'acid-5', topic:'ACID', front:'O que garante a propriedade de Durabilidade?', back:'Uma vez confirmada (COMMIT), a transação persiste mesmo diante de falhas subsequentes do sistema (queda de energia, crash, etc).' },
+
+    // ===================== Português - Orações Subordinadas =====================
+    { id:'pt-sub-1', topic:'Português - Orações Subordinadas', front:'Quais os três grandes grupos de orações subordinadas?', back:'Substantivas, Adjetivas e Adverbiais.' },
+    { id:'pt-sub-2', topic:'Português - Orações Subordinadas', front:'O que caracteriza uma oração subordinada substantiva?', back:'Exerce função de substantivo em relação à oração principal (sujeito, objeto, predicativo, complemento nominal, aposto). Ex: "É importante que você estude" (subjetiva).' },
+    { id:'pt-sub-3', topic:'Português - Orações Subordinadas', front:'O que caracteriza uma oração subordinada adjetiva?', back:'Exerce função de adjetivo, funcionando como um adjunto adnominal de um termo da oração principal, geralmente iniciada por pronome relativo (que, o qual, cujo). Ex: "O livro que comprei é ótimo."' },
+    { id:'pt-sub-4', topic:'Português - Orações Subordinadas', front:'Qual a diferença entre oração adjetiva restritiva e explicativa?', back:'Restritiva: delimita/restringe o sentido do antecedente, sem vírgula (ex: "Os alunos que estudaram passaram"). Explicativa: acrescenta uma informação extra, entre vírgulas (ex: "Os alunos, que estudaram muito, passaram").' },
+    { id:'pt-sub-5', topic:'Português - Orações Subordinadas', front:'O que caracteriza uma oração subordinada adverbial?', back:'Exerce função de advérbio, expressando circunstância (causa, condição, concessão, comparação, conformidade, consequência, finalidade, proporção, tempo).' },
+    { id:'pt-sub-6', topic:'Português - Orações Subordinadas', front:'Dê um exemplo de oração subordinada adverbial condicional.', back:'"Se você estudar, passará no concurso" — a oração "Se você estudar" expressa condição.' },
+    { id:'pt-sub-7', topic:'Português - Orações Subordinadas', front:'Dê um exemplo de oração subordinada adverbial concessiva.', back:'"Embora estivesse cansado, continuou estudando" — a oração "Embora estivesse cansado" expressa concessão (ideia contrária não impeditiva).' },
+
+    // ===================== Português - Conjunções Coordenativas e "que" =====================
+    { id:'pt-conj-1', topic:'Português - Conjunções Coordenativas e \'que\'', front:'Quais são os 5 tipos de conjunções coordenativas?', back:'Aditivas (e, nem, também), Adversativas (mas, porém, todavia, contudo), Alternativas (ou...ou, ora...ora), Conclusivas (logo, portanto, por isso) e Explicativas (pois, porque, que).' },
+    { id:'pt-conj-2', topic:'Português - Conjunções Coordenativas e \'que\'', front:'Qual a diferença entre "que" como conjunção integrante e "que" como pronome relativo?', back:'Conjunção integrante: introduz oração subordinada substantiva, sem antecedente e sem função sintática própria (ex: "Espero que você venha"). Pronome relativo: retoma um antecedente e exerce função sintática na oração que introduz (ex: "O livro que li era bom" — "que" = objeto direto de "li").' },
+    { id:'pt-conj-3', topic:'Português - Conjunções Coordenativas e \'que\'', front:'No exemplo "Estou cansado, que trabalhei muito", que valor tem a conjunção "que"?', back:'Valor explicativo (equivalente a "porque") — uma conjunção coordenativa explicativa, não subordinativa.' },
+    { id:'pt-conj-4', topic:'Português - Conjunções Coordenativas e \'que\'', front:'A conjunção "mas" pode ser substituída por quais outras conjunções adversativas equivalentes?', back:'Porém, todavia, contudo, entretanto, no entanto — todas indicam oposição/contraste entre as orações.' },
+    { id:'pt-conj-5', topic:'Português - Conjunções Coordenativas e \'que\'', front:'Como identificar se "que" é pronome relativo em uma frase?', back:'Verifique se ele pode ser substituído por "o qual/a qual/os quais/as quais" e se retoma um substantivo anterior (antecedente), exercendo função sintática na oração.' },
+
+    // ===================== Português - Concordância Verbal =====================
+    { id:'pt-conc-1', topic:'Português - Concordância Verbal', front:'Qual a regra geral de concordância verbal com sujeito composto anteposto ao verbo?', back:'O verbo vai para o plural. Ex: "O gerente e o analista chegaram cedo."' },
+    { id:'pt-conc-2', topic:'Português - Concordância Verbal', front:'Como concorda o verbo com sujeitos coletivos no singular (ex: "a maioria", "grande parte")?', back:'O verbo concorda no singular com o coletivo, mas pode ir para o plural se houver especificação do que compõe o coletivo (concordância atrativa). Ex: "A maioria dos servidores aprovou" ou "A maioria dos servidores aprovaram".' },
+    { id:'pt-conc-3', topic:'Português - Concordância Verbal', front:'Como o verbo "haver" concorda quando indica existência/tempo decorrido?', back:'Permanece na 3ª pessoa do singular (impessoal), não vai para o plural, mesmo diante de sujeito plural aparente. Ex: "Havia muitos candidatos na sala."' },
+    { id:'pt-conc-4', topic:'Português - Concordância Verbal', front:'O verbo "fazer" indicando tempo decorrido é pessoal ou impessoal?', back:'Impessoal — permanece sempre na 3ª pessoa do singular. Ex: "Faz dez anos que estudo para concursos."' },
+    { id:'pt-conc-5', topic:'Português - Concordância Verbal', front:'Como concorda o verbo com expressões partitivas seguidas de substantivo no plural (ex: "parte de", "a maior parte de")?', back:'Pode concordar no singular (com a expressão) ou no plural (com o substantivo que a segue). Ex: "Parte dos servidores concorda" ou "Parte dos servidores concordam".' },
+    { id:'pt-conc-6', topic:'Português - Concordância Verbal', front:'Como concorda o verbo com sujeito composto por núcleos ligados por "ou" com ideia de exclusão?', back:'Verbo no singular, quando "ou" indica exclusão/alternativa exclusiva. Ex: "José ou Maria será o representante."' },
+    { id:'pt-conc-7', topic:'Português - Concordância Verbal', front:'Como concorda o verbo "ser" em frases de identificação (ex: "Tudo são flores")?', back:'O verbo "ser" tende a concordar com o predicativo quando o sujeito é um pronome neutro (tudo, isto, isso, aquilo) e o predicativo está no plural. Ex: "Tudo são flores."' },
+
+    // ===================== OSI - 7 Camadas =====================
+    { id:'osi-1', topic:'OSI - 7 Camadas', front:'Quais são as 7 camadas do modelo OSI, da mais baixa para a mais alta?', back:'1. Física; 2. Enlace (Link de Dados); 3. Rede; 4. Transporte; 5. Sessão; 6. Apresentação; 7. Aplicação.' },
+    { id:'osi-2', topic:'OSI - 7 Camadas', front:'O que faz a camada Física do modelo OSI?', back:'Transmite bits brutos através do meio físico (cabos, sinais elétricos/ópticos/rádio), definindo características elétricas, mecânicas e de sinalização.' },
+    { id:'osi-3', topic:'OSI - 7 Camadas', front:'O que faz a camada de Enlace (Data Link) do modelo OSI?', back:'Organiza bits em quadros (frames), faz controle de erros e endereçamento físico (MAC), garantindo comunicação confiável entre nós diretamente conectados.' },
+    { id:'osi-4', topic:'OSI - 7 Camadas', front:'O que faz a camada de Rede do modelo OSI?', back:'Responsável pelo roteamento e endereçamento lógico (IP) dos pacotes entre redes diferentes.' },
+    { id:'osi-5', topic:'OSI - 7 Camadas', front:'O que faz a camada de Transporte do modelo OSI?', back:'Garante entrega confiável (ou não) dos dados fim a fim, controle de fluxo e segmentação — protocolos TCP (confiável) e UDP (não confiável) atuam aqui.' },
+    { id:'osi-6', topic:'OSI - 7 Camadas', front:'O que faz a camada de Sessão do modelo OSI?', back:'Estabelece, gerencia e encerra sessões (diálogos) de comunicação entre aplicações.' },
+    { id:'osi-7', topic:'OSI - 7 Camadas', front:'O que faz a camada de Apresentação do modelo OSI?', back:'Traduz, formata, criptografa/descriptografa e comprime dados entre o formato da aplicação e o formato de rede (ex: conversão de codificação, SSL/TLS).' },
+    { id:'osi-8', topic:'OSI - 7 Camadas', front:'O que faz a camada de Aplicação do modelo OSI?', back:'Interface entre o usuário/aplicação e a rede — é onde atuam protocolos como HTTP, FTP, SMTP, DNS.' },
+
+    // ===================== RFC 1918 e IP Privado =====================
+    { id:'rfc1918-1', topic:'RFC 1918 e IP Privado', front:'O que define a RFC 1918?', back:'Define os intervalos de endereços IPv4 reservados para uso em redes privadas, não roteáveis diretamente na internet pública.' },
+    { id:'rfc1918-2', topic:'RFC 1918 e IP Privado', front:'Quais são as três faixas de endereços IP privados definidas pela RFC 1918?', back:'10.0.0.0/8 (10.0.0.0 – 10.255.255.255); 172.16.0.0/12 (172.16.0.0 – 172.31.255.255); 192.168.0.0/16 (192.168.0.0 – 192.168.255.255).' },
+    { id:'rfc1918-3', topic:'RFC 1918 e IP Privado', front:'Por que endereços privados precisam de NAT para acessar a internet?', back:'Porque endereços privados (RFC 1918) não são roteáveis na internet pública — o NAT (Network Address Translation) traduz o IP privado para um IP público na saída da rede.' },
+    { id:'rfc1918-4', topic:'RFC 1918 e IP Privado', front:'Qual a faixa de IP privado mais comum em redes domésticas?', back:'192.168.0.0/16, tipicamente usada em roteadores domésticos (ex: 192.168.0.1, 192.168.1.1).' },
+    { id:'rfc1918-5', topic:'RFC 1918 e IP Privado', front:'Quantos endereços a faixa 10.0.0.0/8 comporta?', back:'Aproximadamente 16,7 milhões de endereços (2^24), a maior das três faixas privadas da RFC 1918.' },
+
+    // ===================== Redes - IEEE e Portas =====================
+    { id:'ieee-1', topic:'Redes - IEEE e Portas', front:'O que é o padrão IEEE 802.3?', back:'Padrão que define as especificações para redes Ethernet (cabeadas).' },
+    { id:'ieee-2', topic:'Redes - IEEE e Portas', front:'O que é o padrão IEEE 802.11?', back:'Padrão que define as especificações para redes locais sem fio (Wi-Fi).' },
+    { id:'ieee-3', topic:'Redes - IEEE e Portas', front:'O que é o padrão IEEE 802.1Q?', back:'Padrão que define o uso de VLANs (Virtual LANs) em redes Ethernet, permitindo segmentação lógica de uma rede física.' },
+    { id:'ieee-4', topic:'Redes - IEEE e Portas', front:'Qual a diferença entre porta "well-known" e porta "registrada" (segundo a IANA)?', back:'Well-known (0–1023): reservadas para serviços padrão do sistema (ex: 80, 443, 22). Registradas (1024–49151): registradas na IANA para aplicações específicas. Dinâmicas/privadas (49152–65535): uso temporário/efêmero.' },
+    { id:'ieee-5', topic:'Redes - IEEE e Portas', front:'O que diferencia TCP de UDP na camada de transporte?', back:'TCP: orientado a conexão, confiável, com controle de fluxo/erro e reordenação (ex: HTTP, FTP, e-mail). UDP: não orientado a conexão, sem garantia de entrega, mais rápido e leve (ex: DNS, streaming, VoIP, DHCP).' },
+
+    // ===================== Inglês - Voz Passiva e Vocabulário =====================
+    { id:'ing-1', topic:'Inglês - Voz Passiva e Vocabulário', front:'Como se forma a voz passiva em inglês?', back:'Verbo "to be" (conjugado no tempo verbal desejado) + particípio passado (past participle) do verbo principal. Ex: "The report is written" / "The report was written by John."' },
+    { id:'ing-2', topic:'Inglês - Voz Passiva e Vocabulário', front:'Transforme para a voz passiva: "The IT team manages the servers."', back:'"The servers are managed by the IT team."' },
+    { id:'ing-3', topic:'Inglês - Voz Passiva e Vocabulário', front:'Transforme para a voz passiva: "The company implemented the new policy."', back:'"The new policy was implemented by the company."' },
+    { id:'ing-4', topic:'Inglês - Voz Passiva e Vocabulário', front:'Quando o agente da passiva ("by + agente") pode ser omitido?', back:'Quando o agente é desconhecido, óbvio ou irrelevante para o contexto. Ex: "The data was deleted" (sem indicar quem apagou).' },
+    { id:'ing-5', topic:'Inglês - Voz Passiva e Vocabulário', front:'Como fica a voz passiva de uma frase no presente perfect ("has/have + particípio")?', back:'"has/have been + particípio passado". Ex: "They have completed the task" → "The task has been completed."' },
+    { id:'ing-6', topic:'Inglês - Voz Passiva e Vocabulário', front:'Vocabulário técnico: qual o significado de "compliance"?', back:'Conformidade — adequação a normas, leis ou regulamentos.' },
+    { id:'ing-7', topic:'Inglês - Voz Passiva e Vocabulário', front:'Vocabulário técnico: qual o significado de "framework"?', back:'Estrutura/arcabouço — conjunto de conceitos, práticas e critérios usados para lidar com um tipo de problema (ex: ITIL, COBIT).' },
+    { id:'ing-8', topic:'Inglês - Voz Passiva e Vocabulário', front:'Vocabulário técnico: qual o significado de "stakeholder"?', back:'Parte interessada — pessoa ou grupo que tem interesse ou é afetado por um projeto, serviço ou decisão organizacional.' },
+    { id:'ing-9', topic:'Inglês - Voz Passiva e Vocabulário', front:'Vocabulário técnico: qual o significado de "outsourcing"?', back:'Terceirização — contratação de terceiros para realizar atividades ou fornecer serviços que poderiam ser executados internamente.' },
+    { id:'ing-10', topic:'Inglês - Voz Passiva e Vocabulário', front:'Vocabulário técnico: qual o significado de "throughput"?', back:'Vazão/rendimento — quantidade de dados ou trabalho processado em um determinado intervalo de tempo.' }
+  ];
+  // Cobre os 17 tópicos que você indicou como foco principal, mais 19 tópicos
+  // adicionais que você ainda vai estudar. Revise sempre com atenção — normas
+  // administrativas (IN SGD) mudam com frequência; se notar algo desatualizado
+  // no dia da prova, me avise para eu corrigir.
+
+  (function(){
+    // ==== TROQUE AQUI A SENHA DE ACESSO ====
+    var ACCESS_PASSWORD = 'dataprev2026';
+    // =========================================
+    var UNLOCK_KEY = 'dataprev_flash_unlocked';
+    var PROGRESS_KEY = 'dataprev_flash_progress_v1';
+    var DEFAULT_TOPIC = 'Geral';
+
+    var state = { cards: [], topics: [], streak: 0, bestStreak: 0, lastStudyDate: null };
+    var session = null;
+    var selectedTopicsForStudy = [];
+
+    var lockScreen = document.getElementById('lockScreen');
+    var mainContent = document.getElementById('mainContent');
+    var lockInput = document.getElementById('lockPasswordInput');
+    var lockError = document.getElementById('lockError');
+    var btnUnlock = document.getElementById('btnUnlock');
+
+    var els = {
+      streakChip: document.getElementById('streakChip'),
+      streakNum: document.getElementById('streakNum'),
+      cardCount: document.getElementById('cardCount'),
+      btnStudy: document.getElementById('btnStudy'),
+      btnReviewMistakes: document.getElementById('btnReviewMistakes'),
+      mistakeCount: document.getElementById('mistakeCount'),
+      listWrap: document.getElementById('listWrap'),
+      cardList: document.getElementById('cardList'),
+
+      viewHome: document.getElementById('view-home'),
+      viewTopics: document.getElementById('view-topics'),
+      viewStudy: document.getElementById('view-study'),
+      viewResults: document.getElementById('view-results'),
+
+      topicSelectList: document.getElementById('topicSelectList'),
+      topicError: document.getElementById('topicError'),
+      btnCancelTopics: document.getElementById('btnCancelTopics'),
+      btnStartWithTopics: document.getElementById('btnStartWithTopics'),
+
+      btnCloseStudy: document.getElementById('btnCloseStudy'),
+      progressFill: document.getElementById('progressFill'),
+      progressLabel: document.getElementById('progressLabel'),
+      progressScore: document.getElementById('progressScore'),
+      flashcard: document.getElementById('flashcard'),
+      faceFront: document.getElementById('faceFront'),
+      faceTopicFront: document.getElementById('faceTopicFront'),
+      faceBack: document.getElementById('faceBack'),
+      flipHint: document.getElementById('flipHint'),
+      answerButtons: document.getElementById('answerButtons'),
+      btnWrong: document.getElementById('btnWrong'),
+      btnRight: document.getElementById('btnRight'),
+
+      resultSub: document.getElementById('resultSub'),
+      resCorrect: document.getElementById('resCorrect'),
+      resWrong: document.getElementById('resWrong'),
+      btnStudyMissed: document.getElementById('btnStudyMissed'),
+      btnBackHome: document.getElementById('btnBackHome')
+    };
+
+    function escapeHtml(str){
+      var d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    function todayStr(){
+      var d = new Date();
+      return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+    }
+    function daysBetween(a,b){
+      var da = new Date(a), db = new Date(b);
+      return Math.round((db - da) / 86400000);
+    }
+
+    // ---------- LOCK ----------
+    function unlockApp(){
+      lockScreen.classList.add('hidden');
+      mainContent.classList.remove('hidden');
+      initApp();
+    }
+    function tryUnlock(){
+      if(lockInput.value === ACCESS_PASSWORD){
+        lockError.classList.remove('show');
+        try{ localStorage.setItem(UNLOCK_KEY, '1'); }catch(e){}
+        unlockApp();
+      } else {
+        lockError.classList.add('show');
+        lockInput.value = '';
+        lockInput.focus();
+      }
+    }
+    btnUnlock.addEventListener('click', tryUnlock);
+    lockInput.addEventListener('keydown', function(e){ if(e.key === 'Enter') tryUnlock(); });
+
+    var alreadyUnlocked = false;
+    try{ alreadyUnlocked = localStorage.getItem(UNLOCK_KEY) === '1'; }catch(e){}
+    if(alreadyUnlocked){ unlockApp(); } else { setTimeout(function(){ lockInput.focus(); }, 200); }
+
+    // ---------- LOAD CARDS + PROGRESS (tudo local, sem servidor) ----------
+    function initApp(){
+      var progress = { needsReview:{}, streak:0, bestStreak:0, lastStudyDate:null };
+      try{
+        var raw = localStorage.getItem(PROGRESS_KEY);
+        if(raw) progress = JSON.parse(raw);
+      }catch(e){ /* sem progresso salvo ainda */ }
+
+      state.cards = CARDS_DATA.map(function(c){
+        return {
+          id: c.id,
+          front: c.front,
+          back: c.back,
+          topic: c.topic || DEFAULT_TOPIC,
+          needsReview: !!progress.needsReview[c.id]
+        };
+      });
+      state.topics = [];
+      state.cards.forEach(function(c){
+        if(state.topics.indexOf(c.topic) === -1) state.topics.push(c.topic);
+      });
+      state.streak = progress.streak || 0;
+      state.bestStreak = progress.bestStreak || 0;
+      state.lastStudyDate = progress.lastStudyDate || null;
+
+      renderHome();
+      renderStreak();
+    }
+
+    function saveProgress(){
+      var needsReview = {};
+      state.cards.forEach(function(c){ if(c.needsReview) needsReview[c.id] = true; });
+      var progress = {
+        needsReview: needsReview,
+        streak: state.streak,
+        bestStreak: state.bestStreak,
+        lastStudyDate: state.lastStudyDate
+      };
+      try{ localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress)); }catch(e){ /* best effort */ }
+    }
+
+    function showView(name){
+      [els.viewHome, els.viewTopics, els.viewStudy, els.viewResults].forEach(function(v){ v.classList.add('hidden'); });
+      if(name==='home') els.viewHome.classList.remove('hidden');
+      if(name==='topics') els.viewTopics.classList.remove('hidden');
+      if(name==='study') els.viewStudy.classList.remove('hidden');
+      if(name==='results') els.viewResults.classList.remove('hidden');
+    }
+
+    function renderStreak(){ els.streakNum.textContent = state.streak; }
+    function pulseStreak(){
+      els.streakChip.classList.remove('pulse');
+      void els.streakChip.offsetWidth;
+      els.streakChip.classList.add('pulse');
+    }
+
+    function renderHome(){
+      els.cardCount.textContent = state.cards.length;
+      var canStudy = state.cards.length > 0;
+      els.btnStudy.classList.toggle('btn-disabled', !canStudy);
+
+      var mistakes = state.cards.filter(function(c){ return c.needsReview; });
+      if(mistakes.length > 0){
+        els.btnReviewMistakes.classList.remove('hidden');
+        els.mistakeCount.textContent = mistakes.length;
+      } else {
+        els.btnReviewMistakes.classList.add('hidden');
+      }
+
+      els.cardList.innerHTML = state.cards.map(function(c){
+        return '<div class="card-row">'+
+          '<div class="card-row-text">'+
+            '<div class="card-row-top">'+
+              '<span class="topic-badge">'+escapeHtml(c.topic)+'</span>'+
+              (c.needsReview ? '<span class="mistake-dot" title="Não lembrado"></span>' : '')+
+            '</div>'+
+            '<div class="card-row-front">'+escapeHtml(c.front)+'</div>'+
+            '<div class="card-row-back">'+escapeHtml(c.back)+'</div>'+
+          '</div>'+
+        '</div>';
+      }).join('');
+    }
+
+    // ---------- TOPIC SELECT (before study) ----------
+    function openTopicSelect(){
+      selectedTopicsForStudy = state.topics.slice();
+      renderTopicSelectList();
+      els.topicError.style.display = 'none';
+      showView('topics');
+    }
+
+    function renderTopicSelectList(){
+      els.topicSelectList.innerHTML = state.topics.map(function(t){
+        var count = state.cards.filter(function(c){ return c.topic === t; }).length;
+        var sel = selectedTopicsForStudy.indexOf(t) !== -1 ? ' selected' : '';
+        return '<div class="topic-select-row'+sel+'" data-topic="'+escapeHtml(t)+'">'+
+          '<div class="topic-select-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>'+
+          '<div class="topic-select-name">'+escapeHtml(t)+'</div>'+
+          '<div class="topic-select-count">'+count+' cards</div>'+
+        '</div>';
+      }).join('');
+
+      Array.prototype.forEach.call(els.topicSelectList.querySelectorAll('[data-topic]'), function(row){
+        row.addEventListener('click', function(){
+          var t = row.getAttribute('data-topic');
+          var idx = selectedTopicsForStudy.indexOf(t);
+          if(idx === -1) selectedTopicsForStudy.push(t);
+          else selectedTopicsForStudy.splice(idx,1);
+          renderTopicSelectList();
+        });
+      });
+    }
+
+    els.btnStudy.addEventListener('click', function(){
+      if(state.cards.length === 0) return;
+      openTopicSelect();
+    });
+    els.btnCancelTopics.addEventListener('click', function(){ showView('home'); });
+
+    els.btnStartWithTopics.addEventListener('click', function(){
+      var pool = state.cards.filter(function(c){ return selectedTopicsForStudy.indexOf(c.topic) !== -1; });
+      if(pool.length === 0){
+        els.topicError.style.display = 'block';
+        return;
+      }
+      els.topicError.style.display = 'none';
+      startSession(pool);
+    });
+
+    // ---------- STUDY SESSION ----------
+    function shuffle(arr){
+      var a = arr.slice();
+      for(var i=a.length-1;i>0;i--){
+        var j = Math.floor(Math.random()*(i+1));
+        var t=a[i]; a[i]=a[j]; a[j]=t;
+      }
+      return a;
+    }
+
+    function startSession(cardsForSession){
+      session = { queue: shuffle(cardsForSession), index: 0, correct: 0, wrong: 0, missed: [] };
+      showView('study');
+      renderCard();
+    }
+
+    els.btnReviewMistakes.addEventListener('click', function(){
+      var pool = state.cards.filter(function(c){ return c.needsReview; });
+      if(pool.length === 0) return;
+      startSession(pool);
+    });
+
+    els.btnCloseStudy.addEventListener('click', function(){ showView('home'); renderHome(); });
+
+    function renderCard(){
+      var total = session.queue.length;
+      var idx = session.index;
+      var card = session.queue[idx];
+
+      els.flashcard.classList.remove('flipped');
+      els.answerButtons.classList.remove('show');
+      els.flipHint.style.opacity = '1';
+
+      els.faceFront.textContent = card.front;
+      els.faceTopicFront.textContent = card.topic;
+      els.faceBack.textContent = card.back;
+
+      els.progressLabel.textContent = 'Card ' + (idx+1) + ' de ' + total;
+      els.progressScore.textContent = session.correct + ' acertos';
+      els.progressFill.style.width = Math.round((idx/total)*100) + '%';
+    }
+
+    els.flashcard.addEventListener('click', function(){
+      var isFlipped = els.flashcard.classList.toggle('flipped');
+      if(isFlipped){
+        els.answerButtons.classList.add('show');
+        els.flipHint.style.opacity = '0';
+      } else {
+        els.answerButtons.classList.remove('show');
+        els.flipHint.style.opacity = '1';
+      }
+    });
+
+    function findCardById(id){
+      for(var i=0;i<state.cards.length;i++){ if(state.cards[i].id === id) return state.cards[i]; }
+      return null;
+    }
+
+    function answer(isCorrect){
+      var sessionCard = session.queue[session.index];
+      var masterCard = findCardById(sessionCard.id);
+
+      if(isCorrect){
+        session.correct++;
+        if(masterCard) masterCard.needsReview = false;
+      } else {
+        session.wrong++;
+        session.missed.push(sessionCard);
+        if(masterCard) masterCard.needsReview = true;
+      }
+      session.index++;
+      if(session.index >= session.queue.length){ finishSession(); } else { renderCard(); }
+    }
+
+    els.btnRight.addEventListener('click', function(e){ e.stopPropagation(); answer(true); });
+    els.btnWrong.addEventListener('click', function(e){ e.stopPropagation(); answer(false); });
+
+    function finishSession(){
+      els.progressFill.style.width = '100%';
+      updateStreak();
+
+      els.resCorrect.textContent = session.correct;
+      els.resWrong.textContent = session.wrong;
+      var total = session.correct + session.wrong;
+      var pct = total ? Math.round((session.correct/total)*100) : 0;
+      els.resultSub.textContent = pct + '% de acerto nesta sessão.';
+
+      els.btnStudyMissed.classList.toggle('hidden', session.missed.length === 0);
+
+      showView('results');
+      launchConfetti();
+      saveProgress();
+    }
+
+    function updateStreak(){
+      var today = todayStr();
+      if(state.lastStudyDate === today){
+        // já contado hoje
+      } else if(state.lastStudyDate && daysBetween(state.lastStudyDate, today) === 1){
+        state.streak += 1;
+      } else {
+        state.streak = 1;
+      }
+      state.lastStudyDate = today;
+      state.bestStreak = Math.max(state.bestStreak, state.streak);
+      renderStreak();
+      pulseStreak();
+    }
+
+    els.btnStudyMissed.addEventListener('click', function(){
+      if(!session || session.missed.length === 0) return;
+      startSession(session.missed);
+    });
+    els.btnBackHome.addEventListener('click', function(){ showView('home'); renderHome(); });
+
+    function launchConfetti(){
+      var colors = ['#58CC02','#1CB0F6','#FFC800','#FF4B4B'];
+      var container = document.getElementById('view-results');
+      for(var i=0;i<18;i++){
+        var piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = (10 + Math.random()*80) + '%';
+        piece.style.background = colors[i % colors.length];
+        piece.style.animationDelay = (Math.random()*0.3) + 's';
+        piece.style.top = '20px';
+        container.appendChild(piece);
+        (function(p){ setTimeout(function(){ p.remove(); }, 1800); })(piece);
+      }
+    }
+  })();
+</script>
+
+</body>
+</html>
